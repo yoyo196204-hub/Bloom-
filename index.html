@@ -1,0 +1,4858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1a1014">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bloom">
+<title>Bloom</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="shortcut icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================================================
+   BLOOM — a period & cycle tracker built with care for Vaishnavi
+   Design tokens
+   ========================================================================= */
+:root{
+  --bg:#1a1014;
+  --bg-2:#241820;
+  --bg-3:#2e1f27;
+  --surface:rgba(255,255,255,0.035);
+  --surface-2:rgba(255,255,255,0.06);
+  --surface-3:rgba(255,255,255,0.09);
+  --border:rgba(255,255,255,0.07);
+  --border-2:rgba(255,255,255,0.12);
+
+  --rose:#d4748f;
+  --rose-bright:#f29cb5;
+  --rose-deep:#9a4a60;
+  --rose-dark:#5a2a38;
+
+  --gold:#d4a574;
+  --gold-dark:#8a6a47;
+  --sage:#8ab583;
+  --amber:#d4a574;
+  --coral:#c96a6a;
+
+  --flow-spot:#7d3948;
+  --flow-light:#a0414d;
+  --flow-med:#c4485a;
+  --flow-heavy:#d4485e;
+  --flow-flood:#e84560;
+
+  --text:#f5ecee;
+  --text-2:rgba(245,236,238,0.72);
+  --text-3:rgba(245,236,238,0.48);
+  --text-4:rgba(245,236,238,0.28);
+
+  --serif:'Cormorant Garamond', Georgia, serif;
+  --sans:'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+  --radius-sm:10px;
+  --radius:16px;
+  --radius-lg:24px;
+
+  --shadow:0 8px 24px rgba(0,0,0,0.3);
+  --shadow-lg:0 20px 60px rgba(0,0,0,0.4);
+
+  --ease:cubic-bezier(0.4,0,0.2,1);
+  --ease-out:cubic-bezier(0.16,1,0.3,1);
+
+  --safe-top:env(safe-area-inset-top, 0px);
+  --safe-bot:env(safe-area-inset-bottom, 0px);
+}
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+body{
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--text);
+  font-size:15px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  background-image:
+    radial-gradient(ellipse at top right, rgba(212,116,143,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom left, rgba(212,165,116,0.06) 0%, transparent 50%);
+  background-attachment:fixed;
+}
+
+button{
+  font-family:inherit;
+  border:none;
+  background:none;
+  color:inherit;
+  cursor:pointer;
+  font-size:inherit;
+}
+input,textarea,select{
+  font-family:inherit;
+  color:inherit;
+  font-size:inherit;
+  background:none;
+  border:none;
+  outline:none;
+}
+
+h1,h2,h3,h4{font-family:var(--serif);font-weight:500;letter-spacing:0.01em}
+h1{font-size:2.1rem;line-height:1.15}
+h2{font-size:1.6rem;line-height:1.2}
+h3{font-size:1.25rem;line-height:1.3}
+h4{font-size:1.05rem;line-height:1.35}
+
+/* =========================================================================
+   App shell
+   ========================================================================= */
+#app{
+  display:flex;
+  flex-direction:column;
+  height:100dvh;
+  max-width:480px;
+  margin:0 auto;
+  position:relative;
+  overflow:hidden;
+}
+
+#top-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:calc(var(--safe-top) + 14px) 20px 10px;
+  flex-shrink:0;
+  position:relative;
+  z-index:10;
+}
+.top-title{
+  font-family:var(--serif);
+  font-size:1.35rem;
+  font-weight:500;
+  letter-spacing:0.08em;
+  background:linear-gradient(135deg, var(--rose-bright), var(--gold));
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.top-meta{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.cycle-badge{
+  background:var(--surface-2);
+  border:1px solid var(--border-2);
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:0.78rem;
+  color:var(--text-2);
+  font-weight:500;
+  letter-spacing:0.03em;
+}
+.cycle-badge strong{color:var(--rose-bright);font-weight:600}
+
+main#screens{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:0 16px 140px;
+  scroll-behavior:smooth;
+  -webkit-overflow-scrolling:touch;
+}
+main#screens::-webkit-scrollbar{width:0}
+
+.screen{
+  display:none;
+  animation:fadeIn 0.35s var(--ease-out);
+}
+.screen.active{display:block}
+@keyframes fadeIn{
+  from{opacity:0;transform:translateY(8px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* =========================================================================
+   Bottom navigation
+   ========================================================================= */
+#bottom-nav{
+  position:absolute;
+  bottom:calc(var(--safe-bot) + 12px);
+  left:12px;
+  right:12px;
+  background:rgba(36,24,32,0.85);
+  backdrop-filter:blur(20px) saturate(1.5);
+  -webkit-backdrop-filter:blur(20px) saturate(1.5);
+  border:1px solid var(--border-2);
+  border-radius:999px;
+  padding:6px;
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  z-index:20;
+  box-shadow:var(--shadow-lg);
+}
+.nav-btn{
+  flex:1;
+  padding:10px 6px;
+  border-radius:999px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:3px;
+  color:var(--text-3);
+  transition:all 0.25s var(--ease);
+  font-size:0.65rem;
+  font-weight:500;
+  letter-spacing:0.04em;
+}
+.nav-btn svg{width:22px;height:22px;stroke-width:1.8}
+.nav-btn.active{
+  color:var(--text);
+  background:linear-gradient(135deg, rgba(212,116,143,0.25), rgba(212,165,116,0.15));
+}
+.nav-btn.active svg{stroke:var(--rose-bright)}
+
+/* =========================================================================
+   Cards & components
+   ========================================================================= */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:18px;
+  margin-bottom:14px;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+}
+.card.elevated{
+  background:var(--surface-2);
+  box-shadow:var(--shadow);
+}
+.card-title{
+  font-family:var(--serif);
+  font-size:1.15rem;
+  margin-bottom:12px;
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.card-subtle{
+  font-size:0.78rem;
+  color:var(--text-3);
+  letter-spacing:0.04em;
+  text-transform:uppercase;
+  font-weight:500;
+}
+
+.btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:13px 20px;
+  border-radius:var(--radius-sm);
+  font-weight:500;
+  font-size:0.95rem;
+  transition:all 0.2s var(--ease);
+  letter-spacing:0.01em;
+}
+.btn:active{transform:scale(0.98)}
+.btn-primary{
+  background:linear-gradient(135deg, var(--rose), var(--rose-deep));
+  color:#fff;
+  box-shadow:0 4px 16px rgba(212,116,143,0.35);
+}
+.btn-primary:hover{background:linear-gradient(135deg, var(--rose-bright), var(--rose))}
+.btn-secondary{
+  background:var(--surface-2);
+  border:1px solid var(--border-2);
+  color:var(--text);
+}
+.btn-ghost{color:var(--text-2);background:transparent}
+.btn-full{width:100%}
+.btn-lg{padding:16px 24px;font-size:1rem}
+
+.chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 14px;
+  border-radius:999px;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  font-size:0.85rem;
+  color:var(--text-2);
+  cursor:pointer;
+  transition:all 0.2s var(--ease);
+  user-select:none;
+}
+.chip:active{transform:scale(0.96)}
+.chip.selected{
+  background:linear-gradient(135deg, rgba(212,116,143,0.3), rgba(212,165,116,0.2));
+  border-color:rgba(212,116,143,0.5);
+  color:var(--text);
+}
+.chip-sm{padding:5px 10px;font-size:0.75rem}
+
+.chip-grid{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+/* Hero card on home */
+.hero-card{
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(ellipse at top right, rgba(212,116,143,0.25), transparent 60%),
+    linear-gradient(160deg, rgba(212,116,143,0.12), rgba(212,165,116,0.05));
+  border:1px solid rgba(212,116,143,0.2);
+  padding:24px 22px;
+  border-radius:var(--radius-lg);
+  margin-bottom:14px;
+}
+.hero-phase{
+  font-size:0.75rem;
+  color:var(--rose-bright);
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  font-weight:600;
+  margin-bottom:6px;
+}
+.hero-day{
+  font-family:var(--serif);
+  font-size:2.8rem;
+  line-height:1;
+  margin-bottom:4px;
+  font-weight:500;
+}
+.hero-sub{
+  color:var(--text-2);
+  font-size:0.92rem;
+  margin-bottom:14px;
+}
+.hero-prediction{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  padding-top:14px;
+  border-top:1px solid var(--border);
+  font-size:0.85rem;
+  color:var(--text-2);
+}
+.hero-prediction strong{color:var(--text);font-weight:500}
+
+/* Love note */
+.love-note{
+  font-family:var(--serif);
+  font-style:italic;
+  font-size:1.05rem;
+  line-height:1.55;
+  color:var(--text);
+  padding:20px 22px;
+  background:
+    radial-gradient(ellipse at top left, rgba(212,165,116,0.08), transparent 70%),
+    linear-gradient(135deg, rgba(154,74,96,0.15), rgba(212,165,116,0.05));
+  border:1px solid rgba(212,165,116,0.18);
+  border-radius:var(--radius);
+  margin-bottom:14px;
+  position:relative;
+}
+.love-note::before{
+  content:'';
+  position:absolute;
+  top:-8px;
+  left:22px;
+  width:18px;
+  height:18px;
+  background:var(--gold);
+  border-radius:50%;
+  opacity:0.3;
+  filter:blur(10px);
+}
+.love-sig{
+  display:block;
+  margin-top:10px;
+  font-style:normal;
+  font-family:var(--sans);
+  font-size:0.78rem;
+  color:var(--gold);
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+}
+
+/* Flags */
+.flag{
+  padding:14px 16px;
+  border-radius:var(--radius);
+  margin-bottom:10px;
+  display:flex;
+  gap:12px;
+  font-size:0.9rem;
+  line-height:1.45;
+}
+/* Intake full-screen overlay */
+.intake-overlay{
+  position:fixed;
+  inset:0;
+  background:var(--bg);
+  z-index:100;
+  display:flex;
+  flex-direction:column;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 0.3s ease;
+}
+.intake-overlay.active{opacity:1;pointer-events:auto}
+.intake-topbar{
+  display:flex;
+  align-items:center;
+  padding:14px 16px;
+  padding-top:max(14px, env(safe-area-inset-top));
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  background:rgba(26,16,20,0.95);
+  backdrop-filter:blur(10px);
+  flex-shrink:0;
+}
+.intake-back{
+  background:none;
+  border:none;
+  color:var(--gold);
+  font-size:0.95rem;
+  font-family:var(--sans);
+  cursor:pointer;
+  padding:6px 10px;
+  min-width:48px;
+  text-align:left;
+}
+.intake-title{
+  flex:1;
+  text-align:center;
+  font-family:var(--serif);
+  font-size:1.05rem;
+  color:var(--text);
+}
+.intake-body{
+  flex:1;
+  overflow-y:auto;
+  padding:18px 16px 40px;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Grouped symptom categories (Log screen) */
+.sx-group{
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:14px;
+  margin-bottom:8px;
+  overflow:hidden;
+  background:rgba(255,255,255,0.015);
+  transition:background 0.2s;
+}
+.sx-group.open{background:rgba(255,255,255,0.03)}
+.sx-group-head{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 14px;
+  cursor:pointer;
+  user-select:none;
+}
+.sx-group-ico{font-size:1.05rem}
+.sx-group-label{flex:1;font-size:0.92rem;color:var(--text);font-weight:500}
+.sx-group-count{
+  min-width:22px;
+  height:22px;
+  padding:0 7px;
+  background:var(--gold);
+  color:var(--bg);
+  border-radius:11px;
+  font-size:0.72rem;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
+}
+.sx-group-count:empty{background:transparent;color:transparent;min-width:0;padding:0}
+.sx-group-chev{color:var(--text-dim);font-size:0.85rem;transition:transform 0.25s}
+.sx-group.open .sx-group-chev{transform:rotate(180deg)}
+.sx-group-body{
+  max-height:0;
+  overflow:hidden;
+  transition:max-height 0.3s ease;
+}
+.sx-group.open .sx-group-body{max-height:600px}
+.sx-group-body .chip-grid{padding:4px 14px 14px}
+
+/* Intake questionnaire */
+.intake-progress{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:14px;
+  background:rgba(212,165,116,0.08);
+  border:1px solid rgba(212,165,116,0.2);
+  border-radius:14px;
+  margin-bottom:14px;
+}
+.intake-progress-bar{
+  flex:1;
+  height:6px;
+  background:rgba(255,255,255,0.05);
+  border-radius:3px;
+  overflow:hidden;
+}
+.intake-progress-fill{
+  height:100%;
+  background:linear-gradient(90deg, var(--rose), var(--gold));
+  transition:width 0.4s ease;
+}
+.intake-progress-pct{
+  font-size:0.78rem;
+  color:var(--gold);
+  font-weight:600;
+  min-width:42px;
+  text-align:right;
+}
+.intake-section{
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:14px;
+  margin-bottom:10px;
+  overflow:hidden;
+}
+.intake-section.complete{
+  border-color:rgba(138,181,131,0.3);
+  background:rgba(138,181,131,0.04);
+}
+.intake-section-head{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:14px;
+  cursor:pointer;
+}
+.intake-section-ico{font-size:1.2rem}
+.intake-section-label{flex:1;font-family:var(--serif);font-size:1rem;color:var(--text)}
+.intake-section-sub{font-size:0.75rem;color:var(--text-dim)}
+.intake-section-check{color:var(--sage);font-size:1.1rem}
+.intake-rutik-note{
+  padding:12px 14px;
+  background:rgba(212,165,116,0.06);
+  border-left:2px solid var(--gold);
+  border-radius:4px;
+  margin:0 14px 14px;
+  font-size:0.82rem;
+  color:var(--text-2);
+  font-family:var(--serif);
+  font-style:italic;
+  line-height:1.55;
+}
+.intake-field{margin-bottom:14px}
+.intake-field-label{
+  font-size:0.82rem;
+  color:var(--text-2);
+  margin-bottom:6px;
+  display:block;
+}
+.intake-field-sub{
+  font-size:0.72rem;
+  color:var(--text-dim);
+  margin-top:4px;
+  display:block;
+  font-style:italic;
+}
+.intake-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.intake-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.flag-card{
+  border-radius:18px;
+  padding:16px 18px;
+  margin-bottom:12px;
+  font-size:0.92rem;
+  line-height:1.55;
+  position:relative;
+  transition:background 0.3s ease, border-color 0.3s ease;
+}
+.flag-card.watch{
+  background:linear-gradient(135deg, rgba(212,165,116,0.08), rgba(212,165,116,0.02));
+  border:1px solid rgba(212,165,116,0.20);
+}
+.flag-card.review{
+  background:linear-gradient(135deg, rgba(212,165,116,0.14), rgba(212,165,116,0.04));
+  border:1px solid rgba(212,165,116,0.35);
+}
+.flag-card.alert{
+  background:linear-gradient(135deg, rgba(201,106,106,0.14), rgba(201,106,106,0.04));
+  border:1px solid rgba(201,106,106,0.38);
+}
+.flag-card.urgent{
+  background:linear-gradient(135deg, rgba(201,106,106,0.22), rgba(201,106,106,0.08));
+  border:1px solid rgba(201,106,106,0.55);
+  box-shadow:0 0 0 1px rgba(201,106,106,0.15), 0 8px 24px rgba(201,106,106,0.15);
+}
+.flag-head{display:flex;align-items:flex-start;gap:12px}
+.flag-ico{flex-shrink:0;font-size:1.3rem;line-height:1.2;padding-top:2px}
+.flag-main{flex:1;min-width:0}
+.flag-title{
+  font-family:var(--serif);
+  font-size:1.08rem;
+  font-weight:500;
+  color:var(--text);
+  margin-bottom:2px;
+  letter-spacing:0.01em;
+}
+.flag-level{
+  display:inline-block;
+  font-size:0.7rem;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--text-dim);
+  margin-bottom:6px;
+  font-weight:500;
+}
+.flag-body{color:var(--text-2);font-size:0.92rem}
+.flag-rutik-sig{
+  display:block;
+  margin-top:10px;
+  font-size:0.8rem;
+  color:var(--gold);
+  font-family:var(--serif);
+  font-style:italic;
+  letter-spacing:0.01em;
+}
+.flag-expand{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-top:12px;
+  padding:8px 12px;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:10px;
+  color:var(--text-dim);
+  font-size:0.82rem;
+  cursor:pointer;
+  user-select:none;
+  transition:background 0.2s;
+}
+.flag-expand:hover{background:rgba(255,255,255,0.07)}
+.flag-expand .chev{transition:transform 0.25s;display:inline-block}
+.flag-card.open .flag-expand .chev{transform:rotate(180deg)}
+.flag-drawer{
+  max-height:0;
+  overflow:hidden;
+  transition:max-height 0.4s ease;
+}
+.flag-card.open .flag-drawer{max-height:2000px}
+.flag-drawer-inner{
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px dashed rgba(255,255,255,0.10);
+  font-size:0.86rem;
+  color:var(--text-2);
+}
+.flag-section{margin-bottom:12px}
+.flag-section-head{
+  font-size:0.7rem;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  color:var(--text-dim);
+  margin-bottom:6px;
+  font-weight:600;
+}
+.flag-section-body{font-size:0.85rem;line-height:1.55;color:var(--text-2)}
+.flag-list{list-style:none;padding:0;margin:0}
+.flag-list li{
+  padding:6px 0 6px 20px;
+  position:relative;
+  font-size:0.85rem;
+  line-height:1.5;
+  color:var(--text-2);
+  border-bottom:1px dashed rgba(255,255,255,0.05);
+}
+.flag-list li:last-child{border-bottom:none}
+.flag-list li::before{
+  content:'·';
+  position:absolute;
+  left:6px;
+  color:var(--gold);
+  font-weight:700;
+}
+.flag-citations{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:4px;
+}
+.flag-cite{
+  display:inline-block;
+  padding:3px 8px;
+  background:rgba(212,165,116,0.08);
+  border:1px solid rgba(212,165,116,0.18);
+  border-radius:10px;
+  color:var(--gold);
+  font-size:0.7rem;
+  letter-spacing:0.02em;
+}
+.flag-verify{
+  margin-top:14px;
+  padding:10px 12px;
+  background:rgba(138,181,131,0.06);
+  border-left:2px solid rgba(138,181,131,0.4);
+  border-radius:6px;
+  font-size:0.78rem;
+  color:var(--text-2);
+  font-style:italic;
+}
+
+/* Legacy flag CSS — kept for backward compat with any still-old call sites */
+.flag{
+  border-radius:14px;
+  padding:14px 16px;
+  margin-bottom:10px;
+  display:flex;
+  gap:12px;
+  font-size:0.9rem;
+  line-height:1.45;
+}
+.flag-warning{
+  background:linear-gradient(135deg, rgba(212,165,116,0.12), rgba(212,165,116,0.04));
+  border:1px solid rgba(212,165,116,0.3);
+  color:var(--text);
+}
+.flag-alert{
+  background:linear-gradient(135deg, rgba(201,106,106,0.15), rgba(201,106,106,0.04));
+  border:1px solid rgba(201,106,106,0.35);
+  color:var(--text);
+}
+.flag-info{
+  background:linear-gradient(135deg, rgba(138,181,131,0.1), rgba(138,181,131,0.04));
+  border:1px solid rgba(138,181,131,0.25);
+  color:var(--text);
+}
+.flag-icon{flex-shrink:0;font-size:1.15rem;line-height:1.35}
+.flag-body strong{display:block;margin-bottom:4px;font-family:var(--serif);font-size:1.05rem}
+.flag-ebm{display:block;margin-top:8px;font-size:0.75rem;color:var(--text-3);font-style:italic}
+
+/* Flow selector */
+.flow-selector{
+  display:flex;
+  gap:10px;
+  justify-content:space-between;
+  margin:8px 0;
+}
+.flow-opt{
+  flex:1;
+  padding:14px 8px;
+  border-radius:var(--radius-sm);
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  transition:all 0.2s var(--ease);
+  cursor:pointer;
+}
+.flow-opt:active{transform:scale(0.96)}
+.flow-opt.selected{border-color:rgba(212,116,143,0.5);background:rgba(212,116,143,0.12)}
+.flow-drop{
+  width:22px;
+  height:28px;
+  position:relative;
+}
+.flow-drop::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  clip-path:path('M11 2 Q3 14 3 20 A8 8 0 0 0 19 20 Q19 14 11 2 Z');
+  background:currentColor;
+}
+.flow-opt[data-v="0"]{color:var(--text-4)}
+.flow-opt[data-v="1"]{color:var(--flow-spot)}
+.flow-opt[data-v="2"]{color:var(--flow-light)}
+.flow-opt[data-v="3"]{color:var(--flow-med)}
+.flow-opt[data-v="4"]{color:var(--flow-heavy)}
+.flow-opt[data-v="5"]{color:var(--flow-flood)}
+.flow-label{font-size:0.68rem;color:var(--text-3);letter-spacing:0.04em;text-align:center}
+.flow-opt.selected .flow-label{color:var(--text)}
+
+/* Pain slider */
+.pain-slider-wrap{
+  padding:10px 4px;
+}
+.pain-slider{
+  -webkit-appearance:none;
+  appearance:none;
+  width:100%;
+  height:8px;
+  border-radius:4px;
+  background:linear-gradient(90deg, #4a7a4a 0%, #d4a574 50%, #c96a6a 100%);
+  outline:none;
+  cursor:pointer;
+}
+.pain-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  background:#fff;
+  border:3px solid var(--rose);
+  cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+}
+.pain-slider::-moz-range-thumb{
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  background:#fff;
+  border:3px solid var(--rose);
+  cursor:pointer;
+}
+.pain-value{
+  display:flex;
+  justify-content:space-between;
+  margin-top:12px;
+  color:var(--text-3);
+  font-size:0.75rem;
+}
+.pain-current{
+  text-align:center;
+  font-family:var(--serif);
+  font-size:1.8rem;
+  color:var(--rose-bright);
+  margin-bottom:4px;
+  font-weight:500;
+}
+.pain-current-label{
+  text-align:center;
+  font-size:0.8rem;
+  color:var(--text-2);
+  margin-bottom:10px;
+}
+
+/* Mood emoji */
+.mood-row{
+  display:flex;
+  justify-content:space-between;
+  gap:6px;
+  margin:8px 0;
+}
+.mood-btn{
+  flex:1;
+  aspect-ratio:1;
+  border-radius:12px;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  font-size:1.5rem;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all 0.2s var(--ease);
+  cursor:pointer;
+  position:relative;
+}
+.mood-btn:active{transform:scale(0.92)}
+.mood-btn.selected{
+  background:rgba(212,116,143,0.15);
+  border-color:rgba(212,116,143,0.5);
+  transform:scale(1.05);
+}
+
+/* Onboarding */
+#onboarding{
+  display:none;
+  flex-direction:column;
+  height:100dvh;
+  padding:calc(var(--safe-top) + 40px) 24px calc(var(--safe-bot) + 24px);
+  max-width:480px;
+  margin:0 auto;
+  overflow-y:auto;
+}
+#onboarding.active{display:flex}
+.ob-step{display:none;animation:fadeIn 0.4s var(--ease-out)}
+.ob-step.active{display:block}
+.ob-title{
+  font-family:var(--serif);
+  font-size:2rem;
+  line-height:1.2;
+  margin-bottom:12px;
+}
+.ob-body{
+  color:var(--text-2);
+  margin-bottom:32px;
+  font-size:0.95rem;
+  line-height:1.55;
+}
+.ob-input{
+  width:100%;
+  padding:14px 16px;
+  background:var(--surface-2);
+  border:1px solid var(--border-2);
+  border-radius:var(--radius-sm);
+  margin-bottom:16px;
+  font-size:1rem;
+}
+.ob-input:focus{border-color:var(--rose)}
+.ob-nav{
+  display:flex;
+  gap:10px;
+  margin-top:24px;
+}
+.ob-dots{
+  display:flex;
+  gap:6px;
+  justify-content:center;
+  margin-bottom:32px;
+}
+.ob-dot{
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--text-4);
+  transition:all 0.3s var(--ease);
+}
+.ob-dot.active{background:var(--rose-bright);width:18px;border-radius:3px}
+
+/* Calendar */
+.cal-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:16px;
+  padding:0 4px;
+}
+.cal-month{
+  font-family:var(--serif);
+  font-size:1.3rem;
+}
+.cal-nav{
+  display:flex;
+  gap:8px;
+}
+.cal-nav button{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--text-2);
+}
+.cal-weekdays{
+  display:grid;
+  grid-template-columns:repeat(7, 1fr);
+  gap:4px;
+  margin-bottom:8px;
+}
+.cal-wd{
+  text-align:center;
+  font-size:0.7rem;
+  color:var(--text-3);
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  font-weight:500;
+  padding:8px 0;
+}
+.cal-grid{
+  display:grid;
+  grid-template-columns:repeat(7, 1fr);
+  gap:4px;
+}
+.cal-day{
+  aspect-ratio:1;
+  border-radius:10px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  background:var(--surface);
+  border:1px solid transparent;
+  font-size:0.85rem;
+  color:var(--text-2);
+  position:relative;
+  cursor:pointer;
+  transition:all 0.15s var(--ease);
+}
+.cal-day:active{transform:scale(0.94)}
+.cal-day.other-month{color:var(--text-4);background:transparent}
+.cal-day.today{border-color:var(--rose-bright);color:var(--text);font-weight:600}
+.cal-day.period{
+  background:linear-gradient(135deg, var(--flow-med), var(--flow-heavy));
+  color:#fff;
+  font-weight:500;
+}
+.cal-day.period-pred{
+  background:repeating-linear-gradient(45deg, rgba(212,116,143,0.25), rgba(212,116,143,0.25) 4px, transparent 4px, transparent 8px);
+  color:var(--rose-bright);
+  font-weight:500;
+}
+.cal-day.fertile{
+  background:rgba(138,181,131,0.12);
+  color:var(--sage);
+}
+.cal-day.ovulation{
+  background:rgba(138,181,131,0.25);
+  color:#a4d19d;
+  font-weight:600;
+}
+.cal-day.logged::after{
+  content:'';
+  position:absolute;
+  bottom:3px;
+  width:4px;
+  height:4px;
+  border-radius:50%;
+  background:var(--gold);
+}
+.cal-legend{
+  margin-top:18px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  font-size:0.75rem;
+  color:var(--text-3);
+}
+.cal-legend-item{display:flex;align-items:center;gap:6px}
+.cal-legend-dot{width:12px;height:12px;border-radius:4px}
+
+/* Insights charts */
+.stat-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:14px;
+}
+.stat-card{
+  padding:14px 14px;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  text-align:center;
+}
+.stat-val{
+  font-family:var(--serif);
+  font-size:1.6rem;
+  font-weight:500;
+  color:var(--rose-bright);
+  line-height:1.1;
+}
+.stat-label{
+  font-size:0.7rem;
+  color:var(--text-3);
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  margin-top:4px;
+}
+.stat-sub{font-size:0.7rem;color:var(--text-2);margin-top:3px}
+
+.bar-chart{
+  display:flex;
+  align-items:flex-end;
+  gap:6px;
+  height:120px;
+  padding:8px 0;
+}
+.bar{
+  flex:1;
+  background:linear-gradient(to top, var(--rose-deep), var(--rose));
+  border-radius:4px 4px 0 0;
+  min-height:2px;
+  position:relative;
+  transition:all 0.3s var(--ease);
+}
+.bar-label{
+  position:absolute;
+  bottom:-18px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:0.65rem;
+  color:var(--text-3);
+}
+.bar-val{
+  position:absolute;
+  top:-16px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:0.65rem;
+  color:var(--text-2);
+  font-weight:500;
+}
+
+.heatmap{
+  display:grid;
+  grid-template-columns:repeat(8, 1fr);
+  gap:3px;
+  margin-top:10px;
+}
+.heatmap-cell{
+  aspect-ratio:1;
+  border-radius:3px;
+  background:var(--surface-2);
+  position:relative;
+}
+
+.regularity-gauge{
+  text-align:center;
+  padding:8px 0 14px;
+}
+.gauge-value{
+  font-family:var(--serif);
+  font-size:2.2rem;
+  font-weight:500;
+  line-height:1;
+}
+.gauge-label{
+  font-size:0.85rem;
+  color:var(--text-2);
+  margin-top:6px;
+}
+.gauge-bar{
+  margin:14px auto 0;
+  max-width:200px;
+  height:6px;
+  background:var(--surface-2);
+  border-radius:999px;
+  position:relative;
+  overflow:hidden;
+}
+.gauge-bar-fill{
+  position:absolute;
+  left:0;top:0;bottom:0;
+  border-radius:999px;
+  transition:width 0.5s var(--ease);
+}
+
+/* Quick actions */
+.quick-actions{
+  display:grid;
+  grid-template-columns:repeat(2, 1fr);
+  gap:10px;
+  margin-bottom:14px;
+}
+.quick-action{
+  padding:16px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  text-align:left;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  transition:all 0.2s var(--ease);
+  cursor:pointer;
+}
+.quick-action:active{transform:scale(0.97);background:var(--surface-2)}
+.qa-icon{font-size:1.4rem;margin-bottom:4px}
+.qa-title{font-size:0.92rem;font-weight:500}
+.qa-sub{font-size:0.75rem;color:var(--text-3)}
+
+/* Sections */
+.section{margin-bottom:24px}
+.section-title{
+  font-family:var(--serif);
+  font-size:1.1rem;
+  margin-bottom:10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  color:var(--text);
+  padding:0 4px;
+}
+.section-title .sub{
+  font-family:var(--sans);
+  font-size:0.7rem;
+  color:var(--text-3);
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  font-weight:500;
+}
+
+/* Tip card */
+.tip-card{
+  padding:16px 18px;
+  border-radius:var(--radius);
+  background:linear-gradient(135deg, rgba(138,181,131,0.08), rgba(138,181,131,0.02));
+  border:1px solid rgba(138,181,131,0.2);
+  margin-bottom:14px;
+}
+.tip-header{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:0.72rem;
+  color:var(--sage);
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  font-weight:600;
+  margin-bottom:8px;
+}
+.tip-body{font-size:0.92rem;line-height:1.55;color:var(--text)}
+.tip-ebm{font-size:0.72rem;color:var(--text-3);margin-top:8px;font-style:italic}
+
+/* Modal */
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(10,5,8,0.7);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  z-index:100;
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+  padding:0;
+  animation:fadeIn 0.25s var(--ease-out);
+}
+.modal-overlay.active{display:flex}
+.modal{
+  background:var(--bg-2);
+  border-top:1px solid var(--border-2);
+  border-radius:var(--radius-lg) var(--radius-lg) 0 0;
+  width:100%;
+  max-width:480px;
+  max-height:85vh;
+  overflow-y:auto;
+  padding:20px 22px calc(var(--safe-bot) + 20px);
+  animation:slideUp 0.35s var(--ease-out);
+}
+@keyframes slideUp{
+  from{transform:translateY(100%)}
+  to{transform:translateY(0)}
+}
+.modal-handle{
+  width:40px;
+  height:4px;
+  background:var(--border-2);
+  border-radius:2px;
+  margin:-4px auto 18px;
+}
+.modal-title{
+  font-family:var(--serif);
+  font-size:1.5rem;
+  margin-bottom:4px;
+}
+.modal-sub{
+  color:var(--text-3);
+  font-size:0.82rem;
+  margin-bottom:18px;
+}
+
+/* Log form */
+.log-section{
+  margin-bottom:20px;
+}
+.log-label{
+  font-size:0.8rem;
+  color:var(--text-2);
+  margin-bottom:10px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  letter-spacing:0.02em;
+  font-weight:500;
+}
+.log-label-sub{font-size:0.7rem;color:var(--text-3);font-weight:400}
+
+.date-input{
+  width:100%;
+  padding:12px 14px;
+  background:var(--surface-2);
+  border:1px solid var(--border-2);
+  border-radius:var(--radius-sm);
+  color-scheme:dark;
+}
+.text-input{
+  width:100%;
+  padding:12px 14px;
+  background:var(--surface-2);
+  border:1px solid var(--border-2);
+  border-radius:var(--radius-sm);
+  resize:none;
+  font-size:0.92rem;
+  line-height:1.45;
+}
+
+.toast{
+  position:fixed;
+  bottom:110px;
+  left:50%;
+  transform:translateX(-50%) translateY(20px);
+  background:var(--bg-3);
+  border:1px solid var(--border-2);
+  color:var(--text);
+  padding:12px 20px;
+  border-radius:999px;
+  font-size:0.88rem;
+  z-index:200;
+  opacity:0;
+  transition:all 0.3s var(--ease);
+  box-shadow:var(--shadow-lg);
+  pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Phase indicator ring */
+.phase-ring{
+  position:relative;
+  width:80px;
+  height:80px;
+  margin:0 auto 14px;
+}
+.phase-ring svg{transform:rotate(-90deg)}
+.phase-ring-inner{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  font-family:var(--serif);
+}
+.phase-ring-day{
+  font-size:1.5rem;
+  line-height:1;
+  font-weight:500;
+  color:var(--text);
+}
+.phase-ring-label{
+  font-size:0.65rem;
+  color:var(--text-3);
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  margin-top:2px;
+}
+
+/* Pattern insights */
+.pattern-item{
+  padding:12px 14px;
+  background:var(--surface-2);
+  border-radius:var(--radius-sm);
+  margin-bottom:8px;
+  border-left:3px solid var(--rose);
+  font-size:0.88rem;
+  line-height:1.5;
+}
+.pattern-item strong{color:var(--rose-bright)}
+
+.empty-state{
+  text-align:center;
+  padding:30px 20px;
+  color:var(--text-3);
+  font-size:0.88rem;
+  line-height:1.6;
+}
+.empty-state .em-icon{font-size:2.2rem;margin-bottom:12px;opacity:0.5}
+
+/* Profile */
+.profile-row{
+  display:flex;
+  justify-content:space-between;
+  padding:14px 0;
+  border-bottom:1px solid var(--border);
+  align-items:center;
+}
+.profile-row:last-child{border-bottom:none}
+.profile-row .label{color:var(--text-2);font-size:0.9rem}
+.profile-row .value{color:var(--text);font-weight:500;font-size:0.9rem}
+
+.action-link{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 0;
+  border-bottom:1px solid var(--border);
+  color:var(--text);
+  cursor:pointer;
+  font-size:0.92rem;
+  transition:color 0.2s var(--ease);
+}
+.action-link:last-child{border-bottom:none}
+.action-link:active{color:var(--rose-bright)}
+.action-link .arrow{color:var(--text-3);font-size:1.1rem}
+
+.switch{
+  position:relative;
+  width:44px;
+  height:24px;
+  background:var(--surface-3);
+  border-radius:999px;
+  cursor:pointer;
+  transition:all 0.2s var(--ease);
+}
+.switch::after{
+  content:'';
+  position:absolute;
+  left:2px;top:2px;
+  width:20px;height:20px;
+  background:#fff;
+  border-radius:50%;
+  transition:all 0.2s var(--ease);
+}
+.switch.on{background:var(--rose)}
+.switch.on::after{left:22px}
+
+/* Notes list */
+.log-entry{
+  padding:12px 14px;
+  background:var(--surface-2);
+  border-radius:var(--radius-sm);
+  margin-bottom:8px;
+  font-size:0.85rem;
+}
+.log-entry-date{
+  font-size:0.72rem;
+  color:var(--text-3);
+  letter-spacing:0.04em;
+  margin-bottom:6px;
+  font-weight:500;
+}
+.log-entry-tags{
+  display:flex;
+  flex-wrap:wrap;
+  gap:4px;
+  margin-top:6px;
+}
+
+/* Helpers */
+.flex{display:flex;align-items:center}
+.flex-between{display:flex;justify-content:space-between;align-items:center}
+.mt-0{margin-top:0}
+.mb-0{margin-bottom:0}
+.mt-sm{margin-top:8px}
+.mt-md{margin-top:16px}
+.text-center{text-align:center}
+.text-sm{font-size:0.85rem}
+.text-xs{font-size:0.75rem}
+.text-muted{color:var(--text-3)}
+.hidden{display:none !important}
+</style>
+</head>
+<body>
+
+<div id="onboarding">
+  <div class="ob-dots">
+    <div class="ob-dot active" data-s="0"></div>
+    <div class="ob-dot" data-s="1"></div>
+    <div class="ob-dot" data-s="2"></div>
+    <div class="ob-dot" data-s="3"></div>
+    <div class="ob-dot" data-s="4"></div>
+  </div>
+
+  <!-- Step 0: Welcome -->
+  <div class="ob-step active" data-step="0">
+    <h1 class="ob-title">Hi, Vaishu. <br><span style="background:linear-gradient(135deg,var(--rose-bright),var(--gold));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">This one's for you.</span></h1>
+    <p class="ob-body">
+      I built this because watching you piece together your cycle alone has been breaking my heart. This isn't another generic app. It learns <em>your</em> pattern. It flags what matters. And it has my voice in it, because I wanted you to feel me in here on the bad days too.<br><br>
+      Takes 90 seconds to set up. Promise.
+    </p>
+    <button class="btn btn-primary btn-full btn-lg" onclick="Onboarding.next()">Let's go →</button>
+  </div>
+
+  <!-- Step 1: Last period -->
+  <div class="ob-step" data-step="1">
+    <h1 class="ob-title">When did your last period start?</h1>
+    <p class="ob-body">The first day of bleeding. If you're not sure, pick your best guess — we'll refine it as you log.</p>
+    <input type="date" class="ob-input" id="ob-last-period">
+    <div class="ob-nav">
+      <button class="btn btn-secondary" onclick="Onboarding.prev()">Back</button>
+      <button class="btn btn-primary btn-full" onclick="Onboarding.next()">Continue</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Cycle length estimate -->
+  <div class="ob-step" data-step="2">
+    <h1 class="ob-title">Typical cycle length?</h1>
+    <p class="ob-body">If your cycles are irregular, just put your best average or skip. The app will learn the real pattern from the data, not from this number.</p>
+    <input type="number" class="ob-input" id="ob-cycle-length" placeholder="28" min="15" max="90" value="28">
+    <div class="ob-nav">
+      <button class="btn btn-secondary" onclick="Onboarding.prev()">Back</button>
+      <button class="btn btn-primary btn-full" onclick="Onboarding.next()">Continue</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Conditions -->
+  <div class="ob-step" data-step="3">
+    <h1 class="ob-title">Anything already diagnosed?</h1>
+    <p class="ob-body">This helps tailor what the app flags and what it doesn't. Tap any that apply. If nothing, skip.</p>
+    <div class="chip-grid" id="ob-conditions">
+      <div class="chip" data-v="pcos">PCOS</div>
+      <div class="chip" data-v="thyroid">Thyroid</div>
+      <div class="chip" data-v="endometriosis">Endometriosis</div>
+      <div class="chip" data-v="fibroids">Fibroids</div>
+      <div class="chip" data-v="anemia">Anemia / low iron</div>
+      <div class="chip" data-v="pmdd">PMDD</div>
+    </div>
+    <div class="ob-nav">
+      <button class="btn btn-secondary" onclick="Onboarding.prev()">Back</button>
+      <button class="btn btn-primary btn-full" onclick="Onboarding.next()">Continue</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Ready -->
+  <div class="ob-step" data-step="4">
+    <h1 class="ob-title">You're set.</h1>
+    <p class="ob-body">
+      The more you log, the smarter this gets. I've wired it to watch for things you might miss — heavy flow patterns, cycle drift, pain that shouldn't be normal, PMS signatures, the stuff that actually matters.<br><br>
+      Log what you can, when you can. Even a tap counts. And on the days you don't feel like opening the app — it's still working quietly in the background.<br><br>
+      <em style="color:var(--gold)">I love you. Always.</em>
+    </p>
+    <button class="btn btn-primary btn-full btn-lg" onclick="Onboarding.finish()">Open Bloom →</button>
+  </div>
+</div>
+
+<div id="app" style="display:none">
+  <header id="top-bar">
+    <div class="top-title">Bloom</div>
+    <div class="top-meta">
+      <div class="cycle-badge" id="topCycleBadge">Day <strong>—</strong></div>
+    </div>
+  </header>
+
+  <main id="screens">
+    <!-- ========== HOME ========== -->
+    <section id="home-screen" class="screen active"></section>
+
+    <!-- ========== LOG ========== -->
+    <section id="log-screen" class="screen"></section>
+
+    <!-- ========== INSIGHTS ========== -->
+    <section id="insights-screen" class="screen"></section>
+
+    <!-- ========== CALENDAR ========== -->
+    <section id="calendar-screen" class="screen"></section>
+
+    <!-- ========== PROFILE ========== -->
+    <section id="profile-screen" class="screen"></section>
+  </main>
+
+  <nav id="bottom-nav">
+    <button class="nav-btn active" data-screen="home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3 L3 10 V20 A1 1 0 0 0 4 21 H9 V14 H15 V21 H20 A1 1 0 0 0 21 20 V10 Z"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="nav-btn" data-screen="log">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5 V19 M5 12 H19"/></svg>
+      <span>Log</span>
+    </button>
+    <button class="nav-btn" data-screen="insights">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 17 L9 11 L13 15 L21 7 M15 7 H21 V13"/></svg>
+      <span>Insights</span>
+    </button>
+    <button class="nav-btn" data-screen="calendar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10 H21 M8 3 V7 M16 3 V7"/></svg>
+      <span>Calendar</span>
+    </button>
+    <button class="nav-btn" data-screen="profile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 21 C4 16 8 14 12 14 C16 14 20 16 20 21"/></svg>
+      <span>You</span>
+    </button>
+  </nav>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalBody"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================================
+   BLOOM — core logic
+   Engines are independent modules that share data via the Store.
+   Every write triggers RedFlagEngine.scan() so alerts are never stale.
+   ========================================================================= */
+
+/* -------------------- Utils -------------------- */
+const U = {
+  // --- Date helpers ---
+  // All ISO strings are yyyy-mm-dd in LOCAL calendar terms. Math is done on components
+  // (not via new Date(isoString)) to avoid UTC-shift bugs in positive-offset timezones
+  // like IST (UTC+5:30), where toISOString() would roll dates backwards.
+  _pad(n){ return String(n).padStart(2, '0'); },
+  _parseISO(iso){
+    // Returns [y, m, d] ints. Tolerates Date objects too.
+    if(iso instanceof Date){
+      return [iso.getFullYear(), iso.getMonth()+1, iso.getDate()];
+    }
+    if(typeof iso !== 'string') return null;
+    const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if(!m) return null;
+    return [parseInt(m[1],10), parseInt(m[2],10), parseInt(m[3],10)];
+  },
+  _toDate(iso){
+    // Construct a local Date at midnight of the given ISO date — no TZ shift
+    const p = this._parseISO(iso);
+    if(!p) return new Date(NaN);
+    return new Date(p[0], p[1]-1, p[2]);
+  },
+  todayISO(){
+    const d = new Date();
+    return `${d.getFullYear()}-${this._pad(d.getMonth()+1)}-${this._pad(d.getDate())}`;
+  },
+  toISO(d){
+    if(typeof d === 'string'){
+      // Normalize 'yyyy-mm-dd[...]' → 'yyyy-mm-dd'
+      const p = this._parseISO(d);
+      return p ? `${p[0]}-${this._pad(p[1])}-${this._pad(p[2])}` : d;
+    }
+    if(d instanceof Date && !isNaN(d)){
+      return `${d.getFullYear()}-${this._pad(d.getMonth()+1)}-${this._pad(d.getDate())}`;
+    }
+    return '';
+  },
+  addDays(d, n){
+    const p = this._parseISO(d);
+    if(!p || !Number.isFinite(n)) return typeof d === 'string' ? d : '';
+    // Use Date constructor with local components; JS normalizes overflow (e.g. day 32 → next month)
+    const dt = new Date(p[0], p[1]-1, p[2] + n);
+    return `${dt.getFullYear()}-${this._pad(dt.getMonth()+1)}-${this._pad(dt.getDate())}`;
+  },
+  subDays(d, n){ return this.addDays(d, -n); },
+  daysBetween(a, b){
+    const pa = this._parseISO(a), pb = this._parseISO(b);
+    if(!pa || !pb) return 0;
+    // Use Date.UTC for the arithmetic — no timezone involvement, clean integer day diff
+    const d1 = Date.UTC(pa[0], pa[1]-1, pa[2]);
+    const d2 = Date.UTC(pb[0], pb[1]-1, pb[2]);
+    return Math.round((d2 - d1) / 86400000);
+  },
+  fmt(d){
+    if(!d) return '—';
+    const dt = this._toDate(d);
+    if(isNaN(dt)) return '—';
+    return dt.toLocaleDateString('en-IN', {day:'numeric', month:'short'});
+  },
+  fmtLong(d){
+    if(!d) return '—';
+    const dt = this._toDate(d);
+    if(isNaN(dt)) return '—';
+    return dt.toLocaleDateString('en-IN', {weekday:'short', day:'numeric', month:'short'});
+  },
+  // --- Math helpers ---
+  mean(arr){ if(!arr.length) return 0; return arr.reduce((a,b)=>a+b,0)/arr.length; },
+  std(arr){ if(arr.length<2) return 0; const m=this.mean(arr); return Math.sqrt(arr.map(x=>(x-m)**2).reduce((a,b)=>a+b,0)/(arr.length-1)); },
+  clamp(x,a,b){ return Math.max(a,Math.min(b,x)); },
+  uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+};
+
+/* -------------------- Store --------------------
+   localStorage-backed. Keys prefixed bloom_
+   Schema:
+   profile: {name, dob, cycleLen, conditions[], createdAt}
+   periods: [{id,start,end,flow:[{date,volume}],notes}]
+   logs: [{id,date,symptoms[],pain:{level,loc[],char},mood,energy,sleep,stress,exercise,notes}]
+   settings: {loveNotesOn, sensitivity}
+*/
+const Store = {
+  K: {profile:'bloom_profile', periods:'bloom_periods', logs:'bloom_logs', settings:'bloom_settings', intake:'bloom_intake', meta:'bloom_meta'},
+  SCHEMA: 2, // Batch 1 bumped to 2 — never lose data, only migrate forward
+  _cache:{},
+  _safeParse(raw, fallback){
+    if(raw === null || raw === undefined) return fallback;
+    try { return JSON.parse(raw); } catch(e){ console.warn('[Bloom] parse failed, using fallback', e); return fallback; }
+  },
+  init(){
+    this._cache.profile  = this._safeParse(localStorage.getItem(this.K.profile),  null);
+    this._cache.periods  = this._safeParse(localStorage.getItem(this.K.periods),  []);
+    this._cache.logs     = this._safeParse(localStorage.getItem(this.K.logs),     []);
+    this._cache.settings = this._safeParse(localStorage.getItem(this.K.settings), {loveNotesOn:true});
+    this._cache.intake   = this._safeParse(localStorage.getItem(this.K.intake),   null); // extended questionnaire (Batch 3)
+    this._cache.meta     = this._safeParse(localStorage.getItem(this.K.meta),     {schema:1});
+    // Migration bookkeeping — never destructive, only fills in new fields
+    if(!this._cache.meta.schema || this._cache.meta.schema < this.SCHEMA){
+      this._cache.meta.schema = this.SCHEMA;
+      localStorage.setItem(this.K.meta, JSON.stringify(this._cache.meta));
+    }
+  },
+  save(key){
+    try { localStorage.setItem(this.K[key], JSON.stringify(this._cache[key])); }
+    catch(e){ console.error('[Bloom] save failed for', key, e); }
+  },
+  get profile(){ return this._cache.profile; },
+  set profile(v){ this._cache.profile=v; this.save('profile'); },
+  get periods(){ return this._cache.periods; },
+  get logs(){ return this._cache.logs; },
+  get settings(){ return this._cache.settings; },
+  get intake(){ return this._cache.intake; },
+  set intake(v){ this._cache.intake=v; this.save('intake'); },
+
+  addPeriod(start){
+    const id = U.uid();
+    const p = {id, start, end:null, flow:[{date:start, volume:3}], notes:''};
+    this._cache.periods.push(p);
+    this._cache.periods.sort((a,b)=>a.start.localeCompare(b.start));
+    this.save('periods');
+    return p;
+  },
+  endPeriod(id, endDate){
+    const p = this._cache.periods.find(x=>x.id===id);
+    if(!p) return;
+    p.end = endDate;
+    this.save('periods');
+  },
+  logFlow(date, volume){
+    // Find or create period containing this date, or nearest
+    let p = this.getActivePeriod();
+    if(!p){
+      // if not on period but logging flow, create one starting today
+      p = this.addPeriod(date);
+    }
+    const existing = p.flow.find(f=>f.date===date);
+    if(existing) existing.volume = volume;
+    else p.flow.push({date, volume});
+    p.flow.sort((a,b)=>a.date.localeCompare(b.date));
+    this.save('periods');
+    return p;
+  },
+  getActivePeriod(){
+    // active = most recent period without end date, or where today is within start..end
+    const today = U.todayISO();
+    const p = [...this._cache.periods].reverse().find(x=>{
+      if(!x.end) {
+        // no end yet. But if start was >10 days ago, treat as closed
+        return U.daysBetween(x.start, today) <= 10;
+      }
+      return x.start <= today && today <= x.end;
+    });
+    return p;
+  },
+  getLastPeriod(){
+    return [...this._cache.periods].reverse().find(x=>x.start<=U.todayISO()) || null;
+  },
+  addLog(entry){
+    entry.id = U.uid();
+    entry.date = entry.date || U.todayISO();
+    // Merge with existing log for same date
+    const idx = this._cache.logs.findIndex(l=>l.date===entry.date);
+    if(idx>=0){
+      // Merge: union symptoms, keep latest pain/mood if provided
+      const cur = this._cache.logs[idx];
+      const merged = {...cur};
+      if(entry.symptoms) merged.symptoms = [...new Set([...(cur.symptoms||[]), ...entry.symptoms])];
+      if(entry.pain) merged.pain = entry.pain;
+      if(entry.mood) merged.mood = entry.mood;
+      if(entry.energy!=null) merged.energy = entry.energy;
+      if(entry.sleep!=null) merged.sleep = entry.sleep;
+      if(entry.stress!=null) merged.stress = entry.stress;
+      if(entry.exercise!=null) merged.exercise = entry.exercise;
+      if(entry.notes) merged.notes = entry.notes;
+      this._cache.logs[idx] = merged;
+    } else {
+      this._cache.logs.push(entry);
+    }
+    this._cache.logs.sort((a,b)=>a.date.localeCompare(b.date));
+    this.save('logs');
+  },
+  getLog(date){ return this._cache.logs.find(l=>l.date===date); },
+  updateSettings(s){ Object.assign(this._cache.settings, s); this.save('settings'); }
+};
+
+/* -------------------- CycleEngine --------------------
+   Core prediction. Uses rolling 6-cycle window (ACOG).
+   Classifies regularity by coefficient of variation.
+   FIGO 2018 cycle length: 24-38d normal, variation ≤7-9d normal.
+*/
+const CycleEngine = {
+  getStarts(){ return Store.periods.map(p=>p.start).sort(); },
+  getLengths(){
+    const s = this.getStarts();
+    const out=[];
+    for(let i=1;i<s.length;i++) out.push(U.daysBetween(s[i-1], s[i]));
+    return out;
+  },
+  getStats(){
+    const lens = this.getLengths();
+    if(!lens.length){
+      const p = Store.profile;
+      return {n:0, mean: p?.cycleLen || 28, sd:0, cv:0, regularity:'insufficient', recent:[], recentMean:p?.cycleLen||28, min:null, max:null};
+    }
+    const recent = lens.slice(-6);
+    const mean = U.mean(lens);
+    const recentMean = U.mean(recent);
+    const sd = U.std(recent);
+    const cv = recentMean ? sd/recentMean : 0;
+    // FIGO: variation ≤7-9d = normal
+    const range = Math.max(...recent) - Math.min(...recent);
+    let regularity;
+    if(lens.length<3) regularity='insufficient';
+    else if(range<=3) regularity='very_regular';
+    else if(range<=9) regularity='normal';
+    else if(range<=14) regularity='irregular';
+    else regularity='very_irregular';
+    return {n:lens.length, mean, recentMean, sd, cv, regularity, recent, range, min:Math.min(...lens), max:Math.max(...lens), all:lens};
+  },
+  predictNext(){
+    const starts = this.getStarts();
+    if(!starts.length) return null;
+    const last = starts[starts.length-1];
+    const stats = this.getStats();
+    const use = Math.round(stats.recentMean);
+    const predicted = U.addDays(last, use);
+    // CI: use recent SD, widen for low n
+    const ciDays = Math.max(Math.round(stats.sd * 1.96), stats.n<3 ? 4 : 2);
+    return {
+      predicted,
+      earliest: U.addDays(last, use - ciDays),
+      latest: U.addDays(last, use + ciDays),
+      confidence: stats.regularity,
+      daysUntil: U.daysBetween(U.todayISO(), predicted),
+      lastPeriodStart: last,
+      usedCycleLen: use,
+      ciDays
+    };
+  },
+  predictOvulation(){
+    const n = this.predictNext();
+    if(!n) return null;
+    // Luteal phase constant ~14d (range 10-16). Use 14.
+    const ov = U.subDays(n.predicted, 14);
+    return {
+      ovulation: ov,
+      fertileStart: U.subDays(ov, 5),
+      fertileEnd: U.addDays(ov, 1),
+      daysToOvulation: U.daysBetween(U.todayISO(), ov)
+    };
+  },
+  getCurrentPhase(){
+    const starts = this.getStarts();
+    if(!starts.length) return {phase:'unknown', cycleDay:null};
+    const last = starts[starts.length-1];
+    const cycleDay = U.daysBetween(last, U.todayISO()) + 1;
+    const stats = this.getStats();
+    const cycleLen = stats.recentMean;
+    const active = Store.getActivePeriod();
+    const lastPeriod = Store.getLastPeriod();
+    let phase;
+    // If currently bleeding (within active period start..end, or start..start+7 if no end)
+    const periodEndGuess = lastPeriod?.end || U.addDays(last, 5);
+    if(U.todayISO() >= last && U.todayISO() <= periodEndGuess) phase='menstrual';
+    else {
+      const ovDay = Math.round(cycleLen - 14);
+      if(cycleDay < ovDay - 4) phase='follicular';
+      else if(cycleDay >= ovDay - 4 && cycleDay <= ovDay + 1) phase='ovulatory';
+      else phase='luteal';
+    }
+    return {phase, cycleDay, cycleLen, daysSinceLastPeriod:U.daysBetween(last, U.todayISO())};
+  },
+  isLate(){
+    const n = this.predictNext();
+    if(!n) return {late:false};
+    const today = U.todayISO();
+    const daysLate = U.daysBetween(n.predicted, today);
+    return {late: daysLate > 0, days: daysLate, latest: n.latest, beyondCI: today > n.latest};
+  }
+};
+
+/* -------------------- SymptomEngine --------------------
+   Builds personal symptom signature by cycle phase.
+   Detects frequency patterns, phase clustering.
+*/
+const SymptomEngine = {
+  // Flat list kept for backward compatibility (used by signature/screening)
+  SYMPTOMS: [
+    'cramps','headache','backache','breast tenderness','bloating','nausea','fatigue',
+    'acne','dizziness','constipation','diarrhea','insomnia','irritability','anxiety',
+    'low mood','food cravings','appetite change','tender skin','joint pain','libido high','libido low',
+    // Added in Batch 3 to unlock flag signals
+    'dyspareunia','dyschezia','dysuria','galactorrhea','abnormal discharge',
+    'hair loss','cold intolerance','heat intolerance','palpitation','tremor',
+    'hot flushes','night sweats','breathless','spotting','heavy flow','clots',
+    'fever','pelvic pain','acne flare','hirsutism','weight gain','weight loss'
+  ],
+  // Grouped for the Log screen UI (collapsible sections)
+  SYMPTOM_GROUPS: [
+    {id:'pain', label:'Pain', icon:'🔥', items:[
+      'cramps','headache','backache','joint pain','pelvic pain','breast tenderness'
+    ]},
+    {id:'flow', label:'Flow', icon:'🩸', items:[
+      'spotting','heavy flow','clots'
+    ]},
+    {id:'mood', label:'Mood & head', icon:'💭', items:[
+      'anxiety','low mood','irritability','insomnia','food cravings','fatigue'
+    ]},
+    {id:'skin_hair', label:'Skin & hair', icon:'✨', items:[
+      'acne','acne flare','hair loss','hirsutism','tender skin'
+    ]},
+    {id:'gi', label:'Digestion', icon:'🌀', items:[
+      'bloating','nausea','constipation','diarrhea','appetite change','dyschezia'
+    ]},
+    {id:'temp_energy', label:'Temperature & energy', icon:'🌡', items:[
+      'cold intolerance','heat intolerance','hot flushes','night sweats','palpitation','tremor','dizziness','breathless','weight gain','weight loss'
+    ]},
+    {id:'intimate', label:'Intimate health', icon:'🌸', items:[
+      'dyspareunia','galactorrhea','abnormal discharge','dysuria','libido high','libido low'
+    ]},
+    {id:'infection', label:'Infection signs', icon:'⚠', items:[
+      'fever'
+    ]}
+  ],
+  MOOD_OPTS: [
+    {v:'great', e:'🌟', l:'Great'},
+    {v:'good', e:'🙂', l:'Good'},
+    {v:'meh', e:'😐', l:'Meh'},
+    {v:'down', e:'🥀', l:'Low'},
+    {v:'awful', e:'💔', l:'Awful'},
+  ],
+  // Build signature: for each symptom, what % of logs in each phase had it
+  getPersonalSignature(){
+    const logs = Store.logs;
+    if(logs.length<10) return null;
+    const byPhase = {menstrual:[], follicular:[], ovulatory:[], luteal:[]};
+    logs.forEach(l=>{
+      const phase = this._phaseForDate(l.date);
+      if(!phase || phase==='unknown') return;
+      byPhase[phase].push(l);
+    });
+    const sig = {};
+    this.SYMPTOMS.forEach(s=>{
+      sig[s] = {};
+      Object.keys(byPhase).forEach(phase=>{
+        const ps = byPhase[phase];
+        if(!ps.length){ sig[s][phase] = null; return; }
+        const count = ps.filter(l=>(l.symptoms||[]).includes(s)).length;
+        sig[s][phase] = {n:ps.length, count, pct: count/ps.length};
+      });
+    });
+    return {signature:sig, byPhaseCounts:{
+      menstrual: byPhase.menstrual.length,
+      follicular: byPhase.follicular.length,
+      ovulatory: byPhase.ovulatory.length,
+      luteal: byPhase.luteal.length
+    }};
+  },
+  _phaseForDate(date){
+    // Determine phase for a historical date given period history
+    const starts = CycleEngine.getStarts();
+    if(!starts.length) return 'unknown';
+    // Find the period this date falls in
+    let relevantStart = null;
+    let nextStart = null;
+    for(let i=0;i<starts.length;i++){
+      if(starts[i] <= date){
+        relevantStart = starts[i];
+        nextStart = starts[i+1] || null;
+      } else break;
+    }
+    if(!relevantStart) return 'unknown';
+    const cycleDay = U.daysBetween(relevantStart, date) + 1;
+    const cycleLen = nextStart ? U.daysBetween(relevantStart, nextStart) : CycleEngine.getStats().recentMean;
+    // Find the period object for duration
+    const per = Store.periods.find(p=>p.start===relevantStart);
+    const periodEnd = per?.end || U.addDays(relevantStart, 5);
+    if(date >= relevantStart && date <= periodEnd) return 'menstrual';
+    const ovDay = Math.round(cycleLen - 14);
+    if(cycleDay < ovDay - 4) return 'follicular';
+    if(cycleDay >= ovDay - 4 && cycleDay <= ovDay + 1) return 'ovulatory';
+    return 'luteal';
+  },
+  // Detect luteal-phase symptom clustering consistent with PMS/PMDD
+  screenPMDD(){
+    const sig = this.getPersonalSignature();
+    if(!sig) return null;
+    // PMDD markers (adapted from DSM-5 for prospective tracking)
+    const affective = ['low mood','irritability','anxiety'];
+    const physical = ['cramps','breast tenderness','bloating','fatigue','headache','food cravings'];
+    const THRESHOLD = 0.5; // symptom present in ≥50% of luteal logs
+    const lutealData = sig.byPhaseCounts.luteal;
+    if(lutealData < 6) return {sufficient:false, reason:'Need more luteal-phase logs'};
+
+    const affHits = affective.filter(s => sig.signature[s]?.luteal?.pct >= THRESHOLD);
+    const physHits = physical.filter(s => sig.signature[s]?.luteal?.pct >= THRESHOLD);
+
+    // Check that these do NOT appear in follicular at similar rate (remission criterion)
+    const follicularCount = sig.byPhaseCounts.follicular;
+    const trueLutealOnly = [...affHits, ...physHits].filter(s=>{
+      const f = sig.signature[s]?.follicular?.pct || 0;
+      const l = sig.signature[s]?.luteal?.pct || 0;
+      return l - f >= 0.3; // meaningfully more luteal than follicular
+    });
+
+    const pmddLikely = affHits.length >= 1 && trueLutealOnly.length >= 5;
+    const pmsLikely = trueLutealOnly.length >= 1 && !pmddLikely;
+
+    return {
+      sufficient: true,
+      lutealHits: trueLutealOnly,
+      affectiveHits: affHits,
+      pmddLikely,
+      pmsLikely,
+      followupNeeded: pmddLikely
+    };
+  },
+  // Average pain by phase
+  painByPhase(){
+    const logs = Store.logs.filter(l=>l.pain?.level!=null);
+    if(!logs.length) return null;
+    const byPhase = {menstrual:[], follicular:[], ovulatory:[], luteal:[]};
+    logs.forEach(l=>{
+      const p = this._phaseForDate(l.date);
+      if(byPhase[p]) byPhase[p].push(l.pain.level);
+    });
+    const result = {};
+    Object.keys(byPhase).forEach(k=> result[k] = byPhase[k].length ? U.mean(byPhase[k]) : null);
+    return result;
+  }
+};
+
+/* -------------------- RedFlagEngine --------------------
+   Two-layer output per flag:
+     soft:  { icon, title, body }       — Rutik's voice, caring, visible by default
+     clinical: { finding, criterion, differential[], workup[], citations[] }
+                                        — physician-cross-verifiable, in drawer
+   Severity: 'watch' < 'review' < 'alert' < 'urgent'
+     watch   = pattern forming, single event or weak signal — informational
+     review  = confirmed pattern, plan a clinic visit in coming weeks
+     alert   = meaningful finding, don't delay workup
+     urgent  = same-day / ED consideration
+
+   References used:
+     FIGO 2018 menstrual terminology + PALM-COEIN (AUB)
+     ACOG PB 128 (Dx Abnormal Uterine Bleeding)
+     ACOG PB 136 (Mgmt Abnormal Uterine Bleeding — Ovulatory Dysfunction)
+     NICE NG88 (Heavy Menstrual Bleeding, 2021)
+     NICE NG73 (Endometriosis, 2017)
+     Rotterdam 2003 + AE-PCOS Society 2009 (PCOS)
+     DSM-5 / DSM-5-TR (PMDD)
+     RCOG Green-top 27 (Adenomyosis context)
+     CDC STI Tx 2021 (PID)
+     ACOG CO 651 (Menstruation as Vital Sign — adolescent)
+*/
+const RedFlagEngine = {
+  // Soft copy drafted in Rutik's voice. Clinical copy is neutral clinical prose.
+  // Each flag factory returns a fully-formed flag object OR null if threshold not met.
+
+  _recentLogs(n=60){
+    const cutoff = U.addDays(U.todayISO(), -n);
+    return Store.logs.filter(l => l.date >= cutoff);
+  },
+
+  _countSymptom(keys, nDays=90){
+    const logs = this._recentLogs(nDays);
+    if(!Array.isArray(keys)) keys = [keys];
+    return logs.filter(l=>{
+      const sx = (l.symptoms||[]).map(s=>String(s).toLowerCase());
+      return keys.some(k=> sx.some(s=>s.includes(k.toLowerCase())));
+    }).length;
+  },
+
+  _closedPeriods(){
+    // Periods with a logged end date — only these can be evaluated for duration
+    return Store.periods.filter(p=>p.end);
+  },
+
+  scan(){
+    const flags = [];
+    const stats = CycleEngine.getStats();
+    const conditions = Store.profile?.conditions || [];
+    const intake = Store.intake || {};
+    const today = U.todayISO();
+
+    // --- Intake-derived context for threshold weighting ---
+    const age = (()=>{
+      if(!intake.dob) return null;
+      const b = U._parseISO(intake.dob);
+      const t = U._parseISO(today);
+      if(!b || !t) return null;
+      let a = t[0] - b[0];
+      if(t[1] < b[1] || (t[1]===b[1] && t[2] < b[2])) a--;
+      return a;
+    })();
+    const bmi = (()=>{
+      if(!intake.heightCm || !intake.weightKg) return null;
+      return intake.weightKg / ((intake.heightCm/100) ** 2);
+    })();
+    const highEndometrialRisk = age !== null && (
+      age >= 45 ||
+      (age < 45 && (
+        (bmi && bmi >= 30) ||
+        conditions.includes('PCOS') || conditions.includes('pcos') ||
+        (intake.fhxGynCancer && (intake.fhxGynCancer.includes('Endometrial') || intake.fhxGynCancer.includes('Colorectal (Lynch)'))) ||
+        (intake.currentMeds && intake.currentMeds.includes('Tamoxifen'))
+      ))
+    );
+    const earlyOnsetHMB = intake.menarcheAge && intake.menarcheAge <= 13 && (
+      intake.pphHistory === 'yes' || intake.fhxBleedingDis === 'yes'
+    );
+
+    // --- 1. AUB-L: Prolonged bleeding (FIGO >8d) ---
+    const closed = this._closedPeriods();
+    const longDurations = closed.map(p => ({p, dur: U.daysBetween(p.start, p.end) + 1}))
+                                .filter(x => x.dur > 7);
+    if(longDurations.length >= 1){
+      const recent = longDurations[longDurations.length - 1];
+      const confirmed = longDurations.length >= 2;
+      // Escalate severity when endometrial-cancer risk factors are present
+      const level = highEndometrialRisk && confirmed ? 'alert' : confirmed ? 'review' : 'watch';
+      const riskNote = highEndometrialRisk
+        ? ` Given the factors in your profile (${age!==null && age>=45 ? 'age ≥45' : ''}${bmi && bmi>=30 ? (age>=45?', ':'')+'BMI ≥30':''}${conditions.map(c=>c.toLowerCase()).includes('pcos')?', PCOS':''}${intake.fhxGynCancer?.includes('Endometrial')?', family hx endometrial ca':''}${intake.fhxGynCancer?.includes('Colorectal (Lynch)')?', Lynch family hx':''}), endometrial sampling enters the workup earlier, not later.`
+        : '';
+      flags.push({
+        id: 'aub-prolonged',
+        level,
+        soft: {
+          icon: level==='alert' ? '⚠' : '🌙',
+          title: level==='alert' ? 'Prolonged bleeding — please get a scan soon'
+               : confirmed ? 'Your periods have been running long'
+               : 'Long period this time',
+          body: level==='alert'
+            ? `Your last period went ${recent.dur} days, and it's happened before. Given your profile, this isn't one to wait on — a pelvic scan and bloodwork this week. I'll come with.`
+            : confirmed
+              ? `Your last period went ${recent.dur} days, and it's happened before. I want us to get this looked at — probably not serious, but I don't want to guess when a scan can tell us.`
+              : `${recent.dur} days is a bit long, love. Let's watch the next couple of cycles. If it happens again I'll flag it properly — for now just keeping an eye.`
+        },
+        clinical: {
+          finding: `Prolonged menstrual bleeding: ${recent.dur}-day duration in cycle starting ${U.fmt(recent.p.start)}${confirmed?`; ${longDurations.length} such cycles on record`:''}.${riskNote}`,
+          criterion: 'FIGO 2018: menstrual duration >8 days = prolonged. (Normal 4.5–8d.)',
+          differential: [
+            'PALM: Polyp, Adenomyosis, Leiomyoma (submucosal especially), Malignancy/hyperplasia',
+            'COEIN: Coagulopathy (esp. vWD — ~13% of HMB), Ovulatory dysfunction, Endometrial, Iatrogenic (IUD, anticoag), Not-yet-classified'
+          ],
+          workup: [
+            'Bedside: BP, pallor check, abdominal + bimanual exam',
+            `Labs: CBC, ferritin, TSH, coagulation screen (PT/aPTT${earlyOnsetHMB || (intake.menarcheAge && intake.menarcheAge <= 13) ? ', vWF + factor VIII — early-onset HMB raises pretest probability' : ', vWF if age <25 or FHx bleeding'})`,
+            'Imaging: TVS (ideal day 5–10 of cycle) as first-line structural assessment',
+            'If TVS suggests cavity abnormality: saline infusion sonography or hysteroscopy',
+            highEndometrialRisk
+              ? 'Endometrial sampling: INDICATED on current profile (age/BMI/PCOS/FHx) — do not defer'
+              : 'Endometrial sampling if: age ≥45, OR <45 with risk factors (obesity, PCOS, unopposed estrogen, Lynch, tamoxifen, persistent after med Rx)'
+          ],
+          citations: ['FIGO 2018', 'ACOG PB 128', 'NICE NG88 §1.3–1.5']
+        }
+      });
+    }
+
+    // --- 2. AUB-H: Heavy menstrual bleeding pattern ---
+    const heavyPeriods = Store.periods.filter(p => (p.flow||[]).filter(f=>f.volume>=4).length >= 2);
+    if(heavyPeriods.length >= 2){
+      flags.push({
+        id: 'aub-heavy',
+        level: 'review',
+        soft: {
+          icon: '🩸',
+          title: 'Your flow has been heavy',
+          body: `Multiple cycles with heavy days — I'd rather we check your iron and do a quick scan than have you running on empty. Book a gynae visit, let me know when, and I'll come if you want.`
+        },
+        clinical: {
+          finding: `HMB pattern: ${heavyPeriods.length} cycles with ≥2 days of heavy/flooding flow.`,
+          criterion: 'NICE NG88: HMB = excessive menstrual blood loss interfering with QoL (physical/emotional/social/material). No volumetric cutoff required for dx. Clot passage >1 inch / hourly pad change / flooding = objective features.',
+          differential: [
+            'Structural (PALM): fibroid (esp. submucosal), adenomyosis, polyp, endometrial hyperplasia/cancer',
+            'Non-structural (COEIN): bleeding disorder (vWD, platelet dysfunction — screen if onset at menarche, FHx, or postpartum hemorrhage hx), hypothyroidism, ovulatory dysfunction, anticoagulants/IUD',
+            'Iron-deficiency anemia is the commonest sequela'
+          ],
+          workup: [
+            'Labs: CBC, ferritin (target >30 ng/mL, ideally >50), TSH, coag screen',
+            'TVS day 5–10 — first-line imaging per NICE NG88',
+            'SIS or hysteroscopy if cavity suspected abnormal on TVS',
+            'Endometrial biopsy thresholds as per AUB-L above',
+            'First-line medical: LNG-IUS (Mirena) > tranexamic acid 1g TDS × 4d > mefenamic acid 500mg TDS > COCP (if no CI)'
+          ],
+          citations: ['NICE NG88 2021', 'ACOG PB 128', 'FIGO 2018']
+        }
+      });
+    }
+
+    // --- 3. Oligomenorrhea: cycles >38d confirmed pattern ---
+    if(stats.n >= 3){
+      const longCycles = stats.recent.filter(l => l > 38).length;
+      if(longCycles >= 2){
+        const pcosKnown = conditions.includes('pcos');
+        flags.push({
+          id: 'oligo',
+          level: longCycles >= 3 ? 'review' : 'watch',
+          soft: {
+            icon: '🌙',
+            title: 'Your cycles are running long',
+            body: pcosKnown
+              ? `Long cycles again — consistent with your PCOS. Not scary on its own, but if we haven't checked your thyroid and androgens in a while, worth a round of labs.`
+              : `${longCycles} of your recent cycles were over 38 days. It's a pattern worth understanding — thyroid, hormones, stress, weight, PCOS are all on the differential. Bloodwork will sort most of it out quickly.`
+          },
+          clinical: {
+            finding: `Oligomenorrhea: ${longCycles} of last ${stats.recent.length} cycles >38 days. Recent lengths: ${stats.recent.join(', ')}d.`,
+            criterion: 'FIGO 2018: cycle >38 days = infrequent menstruation. (Normal 24–38d per FIGO 2018, was 21–35 older criteria.)',
+            differential: [
+              'PCOS (Rotterdam: 2 of 3 — oligo/anovulation, clinical/biochem hyperandrogenism, polycystic ovarian morphology on USG)',
+              'Thyroid dysfunction (both hypo and hyper)',
+              'Hyperprolactinemia (stress, prolactinoma, drugs — antipsychotics, metoclopramide)',
+              'Hypothalamic dysfunction (stress, weight loss, excessive exercise — functional hypothalamic amenorrhea)',
+              'Premature ovarian insufficiency (FSH >25 on 2 occasions 4 weeks apart, age <40)',
+              'Cushing syndrome (rare, look for striae, buffalo hump, central obesity)',
+              'Non-classical congenital adrenal hyperplasia (17-OHP)'
+            ],
+            workup: [
+              'Rule out pregnancy (β-hCG) first always',
+              'Labs: TSH, prolactin, fasting insulin + glucose (HOMA-IR), total + free testosterone, DHEAS, SHBG, 17-OHP (morning, follicular)',
+              'If FSH/LH ratio or POI suspected: day 2–5 FSH, LH, estradiol, AMH',
+              'Pelvic USG (TVS) for ovarian morphology — ≥20 follicles per ovary OR ovarian volume >10 mL (AE-PCOS 2014 updated criterion)',
+              'Clinical: BMI, hirsutism (Ferriman-Gallwey), acanthosis nigricans, acne severity'
+            ],
+            citations: ['FIGO 2018', 'Rotterdam 2003', 'AE-PCOS Society 2009/2014', 'ACOG PB 194']
+          }
+        });
+      }
+    }
+
+    // --- 4. Polymenorrhea: cycles <24d ---
+    if(stats.n >= 3){
+      const shortCycles = stats.recent.filter(l => l < 24).length;
+      if(shortCycles >= 2){
+        flags.push({
+          id: 'poly',
+          level: 'review',
+          soft: {
+            icon: '↻',
+            title: 'Cycles coming too close',
+            body: `Your cycles have been short lately. Not dangerous in itself, but short cycles often mean ovulation timing is off — a quick hormone panel clears it up.`
+          },
+          clinical: {
+            finding: `Polymenorrhea: ${shortCycles} of last ${stats.recent.length} cycles <24 days. Recent: ${stats.recent.join(', ')}d.`,
+            criterion: 'FIGO 2018: cycle <24 days = frequent menstruation.',
+            differential: [
+              'Ovulatory dysfunction / luteal phase insufficiency (commonest)',
+              'Anovulatory cycles (AUB-O in PALM-COEIN)',
+              'Thyroid dysfunction',
+              'Perimenopausal transition (age >40)',
+              'Structural AUB masquerading as frequent bleeding (polyp, submucosal fibroid)',
+              'Stress / weight change / shift work'
+            ],
+            workup: [
+              'Day-21 (or ~7 days post-ovulation) progesterone — <3 ng/mL suggests anovulation',
+              'TSH, prolactin',
+              'If age >35 or POI features: FSH, estradiol, AMH',
+              'TVS to rule out structural cause'
+            ],
+            citations: ['FIGO 2018', 'ACOG PB 136']
+          }
+        });
+      }
+    }
+
+    // --- 5. Secondary amenorrhea: gap ≥90d / ≥45d urgent watch ---
+    const last = CycleEngine.getStarts().slice(-1)[0];
+    if(last){
+      const gap = U.daysBetween(last, today);
+      if(gap >= 90){
+        flags.push({
+          id: 'amenorrhea-sec',
+          level: 'alert',
+          soft: {
+            icon: '⏳',
+            title: "It's been a while since your last period",
+            body: `${gap} days. First thing: a pregnancy test — that's not a question of 'if', it's just the order of investigation. After that, we look at thyroid, prolactin, ovaries. Don't wait another week on this one, love.`
+          },
+          clinical: {
+            finding: `Secondary amenorrhea: ${gap} days since last menstrual onset (${U.fmt(last)}).`,
+            criterion: 'Secondary amenorrhea: absence of menses ≥3 cycle-intervals or ≥6 months in a previously-menstruating person. ≥90 days triggers workup.',
+            differential: [
+              'Pregnancy (always first, always rule out)',
+              'Hypothalamic: stress, weight loss, excess exercise (functional hypothalamic amenorrhea — low FSH, low estradiol)',
+              'Pituitary: prolactinoma, Sheehan, non-functioning adenoma',
+              'Ovarian: PCOS, POI (FSH >25), ovarian failure',
+              'Uterine: Asherman syndrome (post-instrumentation), cervical stenosis',
+              'Thyroid: both hypo- and hyperthyroidism',
+              'Medications: hormonal contraception, antipsychotics, chemotherapy'
+            ],
+            workup: [
+              'β-hCG (urine or serum)',
+              'TSH, prolactin, FSH, LH, estradiol',
+              'If androgen excess features: total + free testosterone, DHEAS, 17-OHP',
+              'Progesterone challenge test (medroxyprogesterone 10mg × 10d) — withdrawal bleed = adequate estrogen + patent outflow',
+              'Pelvic USG',
+              'If prolactin high on repeat: MRI sella'
+            ],
+            citations: ['ACOG CO 651', 'ASRM Practice Committee 2008 (reaffirmed)']
+          }
+        });
+      } else if(gap >= 45 && stats.recentMean < 38){
+        flags.push({
+          id: 'amenorrhea-late',
+          level: 'watch',
+          soft: {
+            icon: '⏳',
+            title: 'Period running late',
+            body: `${gap} days, which is past your usual. If there's any chance of pregnancy, test — otherwise give it a few more days and keep logging. I'll escalate this if we cross 90 days.`
+          },
+          clinical: {
+            finding: `Delayed menses: ${gap} days since onset; recent mean cycle ${Math.round(stats.recentMean)}d.`,
+            criterion: 'Delay >14 days beyond cycle mean in previously-regular cycle = clinically noted; escalates to secondary amenorrhea workup at ≥90d.',
+            differential: [
+              'Pregnancy',
+              'Ovulatory dysfunction this cycle',
+              'Acute stress / illness',
+              'Weight change',
+              'Thyroid dysfunction'
+            ],
+            workup: ['β-hCG', 'If not pregnant and persists: proceed to secondary amenorrhea panel at 90d'],
+            citations: ['FIGO 2018']
+          }
+        });
+      }
+    }
+
+    // --- 6. Sudden cycle pattern shift ---
+    if(stats.n >= 6){
+      const older = stats.all.slice(-8, -3);
+      const newer = stats.all.slice(-3);
+      if(older.length >= 3 && newer.length >= 2){
+        const oldMean = U.mean(older);
+        const newMean = U.mean(newer);
+        const shift = Math.abs(oldMean - newMean);
+        if(shift >= 7){
+          flags.push({
+            id: 'shift',
+            level: 'review',
+            soft: {
+              icon: '📉',
+              title: 'Your cycle pattern has shifted',
+              body: `Recent cycles (${newMean.toFixed(0)}d avg) look different from your older baseline (${oldMean.toFixed(0)}d). Bodies change, but a ${shift.toFixed(0)}-day shift is worth understanding — usually stress, weight, or thyroid. Sometimes nothing.`
+            },
+            clinical: {
+              finding: `Sustained cycle length change: ${shift.toFixed(1)}-day shift. Older baseline ${oldMean.toFixed(1)}d (n=${older.length}) → recent ${newMean.toFixed(1)}d (n=${newer.length}).`,
+              criterion: 'FIGO: sustained change ≥7 days from prior baseline is clinically meaningful.',
+              differential: [
+                'Thyroid dysfunction',
+                'Weight change (gain or loss)',
+                'Psychosocial stress / shift work',
+                'New medications (antipsychotics, hormonal contraception, chemo)',
+                'Early perimenopause (if age ≥40 and cycles shortening)',
+                'Structural AUB emergence',
+                'Anovulatory transition'
+              ],
+              workup: [
+                'TSH, prolactin',
+                'Review meds, life events, weight',
+                'If shortening + age >40: FSH, estradiol, AMH (perimenopause assessment)',
+                'If lengthening: oligo workup as above'
+              ],
+              citations: ['FIGO 2018', 'ACOG PB 141 (Menopause)']
+            }
+          });
+        }
+      }
+    }
+
+    // --- 7. Refractory dysmenorrhea → possible secondary (endo/adeno) ---
+    const recentLogs = this._recentLogs(60);
+    const severePain = recentLogs.filter(l => l.pain?.level >= 7);
+    if(severePain.length >= 3){
+      // Progressive dysmenorrhea is especially concerning — check if older cycles logged less pain
+      const oldLogs = Store.logs.filter(l => l.date < U.addDays(today, -120) && l.pain);
+      const oldMeanPain = oldLogs.length ? U.mean(oldLogs.map(l=>l.pain.level)) : null;
+      const recentMeanPain = U.mean(recentLogs.filter(l=>l.pain).map(l=>l.pain.level));
+      const progressive = oldMeanPain !== null && (recentMeanPain - oldMeanPain) >= 2;
+
+      flags.push({
+        id: 'dysmenorrhea-severe',
+        level: progressive ? 'alert' : 'review',
+        soft: {
+          icon: '🔥',
+          title: progressive ? 'Your pain is getting worse over time' : 'Pain pattern looking severe',
+          body: progressive
+            ? `Pain that's worsening cycle-over-cycle isn't something to grit through — it can point to endometriosis or adenomyosis, both treatable. Please don't push through this one. Let's get a gynae scan.`
+            : `${severePain.length} days of pain ≥7/10 recently. If NSAIDs aren't holding it, we should rule out endometriosis/adenomyosis/fibroids. A TVS and a good exam go a long way.`
+        },
+        clinical: {
+          finding: `Severe dysmenorrhea: ${severePain.length} days with pain ≥7/10 over 60-day window${progressive?`; progressive pattern (old mean ${oldMeanPain?.toFixed(1)} → recent ${recentMeanPain.toFixed(1)})`:''}.`,
+          criterion: 'ACOG: dysmenorrhea refractory to NSAIDs ± COCP warrants evaluation for secondary causes. Progressive dysmenorrhea strongly suggests secondary etiology.',
+          differential: [
+            'Endometriosis (suggested by: dysmenorrhea + deep dyspareunia + dyschezia + cyclical GI/urinary sx + infertility; NICE NG73)',
+            'Adenomyosis (HMB + progressive dysmenorrhea + bulky tender uterus; MRI/TVS junctional zone >12mm; RCOG)',
+            'Uterine fibroids (especially submucosal)',
+            'Chronic PID / pelvic adhesions',
+            'Pelvic congestion syndrome',
+            'Primary dysmenorrhea with inadequate treatment (NSAID dosing/timing, COCP trial)'
+          ],
+          workup: [
+            'Optimize primary Rx first: mefenamic acid 500mg TDS starting 1–2d before expected period × 3–5d; add COCP trial if no CI',
+            'TVS (non-invasive first-line for structural)',
+            'Pelvic MRI if suspicion of deep infiltrating endo or adenomyosis and TVS equivocal',
+            'Clinical exam: nodularity of uterosacrals, fixed retroverted uterus, cervical motion tenderness',
+            'Diagnostic laparoscopy is gold standard for endo but should follow imaging and failed medical trial'
+          ],
+          citations: ['ACOG PB 760 (Dysmenorrhea)', 'NICE NG73 2017', 'RCOG GTG 27']
+        }
+      });
+    }
+
+    // --- 8. Endometriosis pattern ---
+    // Dysmenorrhea + (dyspareunia OR dyschezia OR cyclical GI/urinary)
+    const dyspareunia = this._countSymptom(['dyspareunia','pain sex','painful sex'], 120);
+    const dyschezia = this._countSymptom(['dyschezia','painful bowel','pain bowel'], 120);
+    const cyclicalGI = this._countSymptom(['bloating','nausea','diarrhea','constipation'], 120);
+    const hasDysmen = severePain.length >= 2 || this._countSymptom(['cramp'], 120) >= 5;
+    if(hasDysmen && (dyspareunia >= 2 || dyschezia >= 2 || cyclicalGI >= 5)){
+      flags.push({
+        id: 'endo-pattern',
+        level: 'review',
+        soft: {
+          icon: '🌺',
+          title: 'Something in your symptoms looks like it needs a closer look',
+          body: `Pain with periods, pain with intimacy or bowel movements, cyclical gut symptoms — when these come together, they sometimes point to endometriosis. It's common, it's treatable, and getting diagnosed changes things. A gynae visit is the right next step.`
+        },
+        clinical: {
+          finding: `Constellation suggestive of endometriosis: dysmenorrhea ${hasDysmen?'present':'absent'}; dyspareunia logged ${dyspareunia}×; dyschezia ${dyschezia}×; cyclical GI sx ${cyclicalGI}×.`,
+          criterion: 'NICE NG73: suspect endometriosis if 1+ of — chronic pelvic pain, dysmenorrhea affecting QoL, deep dyspareunia, cyclical GI sx (esp. dyschezia), cyclical urinary sx, infertility with any of above.',
+          differential: [
+            'Endometriosis (superficial peritoneal / ovarian endometrioma / deep infiltrating)',
+            'Adenomyosis (overlaps significantly — coexist in ~30%)',
+            'IBS (but cycle-phasic symptoms push against IBS-alone)',
+            'Chronic PID',
+            'Interstitial cystitis / painful bladder syndrome',
+            'Musculoskeletal pelvic pain'
+          ],
+          workup: [
+            'Clinical: pelvic exam for nodularity (posterior fornix), fixed uterus, adnexal mass',
+            'TVS (can detect endometrioma, deep endo nodules in experienced hands)',
+            'Pelvic MRI if deep infiltrating suspected',
+            'CA-125 not recommended routinely (low sensitivity, NICE)',
+            'Laparoscopy = gold standard, but only after imaging + failed empiric medical trial',
+            'Empiric Rx trial (NSAID + COCP continuous) can be diagnostic-therapeutic'
+          ],
+          citations: ['NICE NG73 2017', 'ESHRE Endometriosis Guideline 2022']
+        }
+      });
+    }
+
+    // --- 9. Adenomyosis suspicion ---
+    // HMB (from earlier) + progressive dysmenorrhea + parity (if known in intake)
+    const heavyFlagged = heavyPeriods.length >= 2 || longDurations.length >= 2;
+    const dysmenProg = (()=>{
+      const oldLogs = Store.logs.filter(l => l.date < U.addDays(today, -120) && l.pain);
+      if(!oldLogs.length || !recentLogs.filter(l=>l.pain).length) return false;
+      const oldM = U.mean(oldLogs.map(l=>l.pain.level));
+      const newM = U.mean(recentLogs.filter(l=>l.pain).map(l=>l.pain.level));
+      return (newM - oldM) >= 2;
+    })();
+    if(heavyFlagged && dysmenProg){
+      flags.push({
+        id: 'adeno-suspicion',
+        level: 'review',
+        soft: {
+          icon: '🌷',
+          title: 'Your pattern overlaps with something treatable',
+          body: `Heavy periods plus worsening pain over time is a specific picture — often adenomyosis, sometimes fibroids, sometimes both. A good ultrasound and a gynae who looks for it will answer this.`
+        },
+        clinical: {
+          finding: 'HMB pattern + progressive dysmenorrhea — adenomyosis phenotype.',
+          criterion: 'Suggestive clinical triad: HMB + progressive dysmenorrhea + bulky/tender uterus. TVS findings: asymmetric myometrial thickening, myometrial cysts, heterogeneity. MRI: junctional zone >12mm is specific.',
+          differential: [
+            'Adenomyosis',
+            'Uterine fibroids (esp. intramural/submucosal)',
+            'Combined adeno + fibroids (common)',
+            'Endometriosis (frequently co-exists)',
+            'Chronic endometritis'
+          ],
+          workup: [
+            'TVS looking specifically for: globular uterus, asymmetric walls, myometrial cysts, linear striations, junctional zone thickening',
+            'Pelvic MRI if TVS equivocal and management changes by diagnosis',
+            'CBC + ferritin (HMB workup)',
+            'Medical options: LNG-IUS first-line, GnRH analogues, ulipristal (restrictions)',
+            'Surgical: UAE, adenomyomectomy, hysterectomy (definitive)'
+          ],
+          citations: ['RCOG GTG 27', 'Bazot & Daraï 2018 imaging criteria', 'MUSA consensus 2015']
+        }
+      });
+    }
+
+    // --- 10. Thyroid pattern ---
+    // Menstrual disturbance + ≥2 of: fatigue, weight change, cold/heat intolerance, hair changes
+    const thyroidSx = this._countSymptom(['fatigue','tired'],120) >= 5 ? 1 : 0;
+    const thyroidSx2 = this._countSymptom(['cold','heat intolerance'],120) >= 2 ? 1 : 0;
+    const thyroidSx3 = this._countSymptom(['hair loss','hair fall'],120) >= 2 ? 1 : 0;
+    const thyroidSx4 = this._countSymptom(['constipation','palpitation'],120) >= 2 ? 1 : 0;
+    const thyroidCount = thyroidSx + thyroidSx2 + thyroidSx3 + thyroidSx4;
+    const menstrualDisturbance = flags.some(f => ['oligo','poly','shift','amenorrhea-sec','aub-heavy'].includes(f.id));
+    if(menstrualDisturbance && thyroidCount >= 2){
+      flags.push({
+        id: 'thyroid-pattern',
+        level: 'review',
+        soft: {
+          icon: '🦋',
+          title: 'Worth checking your thyroid',
+          body: `The way your cycle's behaving plus how you've been feeling — fits a thyroid picture often enough that I'd want the labs done before anything else. Easy test, easy fix if it's that.`
+        },
+        clinical: {
+          finding: `Menstrual disturbance concurrent with ${thyroidCount}+ somatic features (fatigue/temp intolerance/hair/GI-cardiac).`,
+          criterion: 'Both hypothyroidism and hyperthyroidism cause menstrual disturbance via HPO axis + SHBG effects. Prevalence of menstrual disturbance in thyroid disease: ~20–65%.',
+          differential: [
+            'Hypothyroidism (HMB + oligo + fatigue + cold + weight gain + constipation)',
+            'Hyperthyroidism (oligo/amenorrhea + heat + weight loss + palpitations + tremor)',
+            'Subclinical thyroid disease',
+            'Autoimmune thyroiditis (Hashimoto)'
+          ],
+          workup: [
+            'TSH first-line; reflex fT4, fT3 if abnormal',
+            'Anti-TPO if autoimmune suspected',
+            'Thyroid USG if goiter/nodule on exam'
+          ],
+          citations: ['ATA Guidelines', 'Krassas et al. Endocr Rev 2010']
+        }
+      });
+    }
+
+    // --- 11. Hyperprolactinemia pattern ---
+    const galactorrhea = this._countSymptom(['galactorrhea','breast discharge','nipple discharge'],180);
+    const oligoOrAmen = flags.some(f => ['oligo','amenorrhea-sec'].includes(f.id));
+    if(oligoOrAmen && galactorrhea >= 1){
+      flags.push({
+        id: 'prolactin-pattern',
+        level: 'review',
+        soft: {
+          icon: '🔬',
+          title: 'A specific thing worth testing',
+          body: `When long/missing periods come with any breast discharge, there's a specific hormone (prolactin) to check. It's a simple blood test and the answers are clean either way.`
+        },
+        clinical: {
+          finding: 'Oligo/amenorrhea + galactorrhea reported — hyperprolactinemia screen indicated.',
+          criterion: 'Galactorrhea + menstrual irregularity has PPV for hyperprolactinemia ~60–80%. Prolactinoma is leading pathological cause.',
+          differential: [
+            'Physiological: stress, sleep, nipple stim, pregnancy',
+            'Drug-induced: antipsychotics, metoclopramide, domperidone, SSRIs (weak), verapamil, opioids',
+            'Prolactinoma (micro <10mm, macro ≥10mm)',
+            'Other pituitary tumor (stalk effect)',
+            'Primary hypothyroidism (TRH stimulates prolactin)',
+            'CKD, cirrhosis'
+          ],
+          workup: [
+            'Fasting morning prolactin × 2–3 (avoid post-exam, post-stim, post-exercise)',
+            'If elevated: TSH, β-hCG, renal/liver panel, medication review',
+            'If sustained elevation without cause: MRI sella with contrast',
+            'Visual field testing if macroadenoma'
+          ],
+          citations: ['Endocrine Society Clinical Practice Guideline 2011']
+        }
+      });
+    }
+
+    // --- 12. PID — urgent (weighted by intake.sexuallyActive) ---
+    const fever = this._countSymptom(['fever'], 14);
+    const pelvicPain = this._countSymptom(['pelvic pain','lower abdominal pain'], 14);
+    const abnormalDischarge = this._countSymptom(['abnormal discharge','foul discharge'], 14);
+    const dyspareuniaIntake = intake.dyspareunia && intake.dyspareunia !== 'no' ? 1 : 0;
+    const dyspareuniaLog = this._countSymptom(['dyspareunia'], 14) > 0 ? 1 : 0;
+    let pidScore = (fever>=1?1:0) + (pelvicPain>=2?1:0) + (abnormalDischarge>=1?1:0) + (dyspareuniaLog || dyspareuniaIntake);
+    // If she's explicitly not sexually active, PID likelihood drops sharply —
+    // don't fire unless fever + pelvic pain both strong; shift to 'alert' not 'urgent'.
+    const notSexuallyActive = intake.sexuallyActive === 'no';
+    const sufficient = notSexuallyActive ? (fever >= 1 && pelvicPain >= 2) : (pidScore >= 2);
+    if(sufficient){
+      flags.push({
+        id: 'pid-urgent',
+        level: notSexuallyActive ? 'alert' : 'urgent',
+        soft: {
+          icon: notSexuallyActive ? '⚠' : '🚨',
+          title: notSexuallyActive ? 'Fever with pelvic pain — get this checked today' : 'Please get seen today',
+          body: notSexuallyActive
+            ? `Fever plus pelvic pain together isn't something to watch overnight. Could be several things — UTI, appendicitis, ovarian — a clinician needs to sort the differential. Today, please.`
+            : `Fever plus pelvic pain plus the discharge you logged — this can be a pelvic infection, and those need antibiotics started the same day. Don't wait on this one. Tell me you're going, and if you want me to come I'll come.`
+        },
+        clinical: {
+          finding: `Constellation of fever + pelvic pain${abnormalDischarge>=1?' + abnormal discharge':''}${(dyspareuniaLog||dyspareuniaIntake)?' + dyspareunia':''}. Sexually active: ${intake.sexuallyActive||'not specified'}.`,
+          criterion: 'CDC 2021: empiric PID treatment when sexually active person has pelvic/lower abdominal pain + at least one of: cervical motion / uterine / adnexal tenderness. Supporting: fever >38.3, abnormal discharge, elevated ESR/CRP, WBC in vaginal fluid, documented cervicitis.',
+          differential: notSexuallyActive ? [
+            'UTI / pyelonephritis',
+            'Appendicitis',
+            'Ovarian torsion or cyst rupture',
+            'Ectopic pregnancy (rare but rule out)',
+            'Functional ovarian pain',
+            'GI cause (gastroenteritis, diverticulitis)'
+          ] : [
+            'Acute PID (gonorrhea, chlamydia, mixed)',
+            'Tubo-ovarian abscess',
+            'Appendicitis',
+            'Ectopic pregnancy (always rule out)',
+            'Ovarian torsion',
+            'Endometritis',
+            'UTI / pyelonephritis'
+          ],
+          workup: [
+            'Immediate clinical exam + bimanual',
+            'β-hCG (always — ectopic stays on differential regardless)',
+            'CBC, CRP',
+            'Urine analysis + culture',
+            ...(notSexuallyActive ? [] : ['NAAT for gonorrhea + chlamydia (first-catch urine or endocervical)']),
+            'TVS / transabdominal USG — look for TOA, ovarian, appendicitis',
+            ...(notSexuallyActive ? [] : ['Empiric Rx per CDC 2021: ceftriaxone 500mg IM × 1 + doxycycline 100mg PO BD × 14d ± metronidazole 500mg PO BD × 14d'])
+          ],
+          citations: notSexuallyActive ? ['ACEP Acute Pelvic Pain Guidelines'] : ['CDC STI Treatment Guidelines 2021']
+        }
+      });
+    }
+
+    // --- 13. PMDD pattern ---
+    const pmddScreen = SymptomEngine.screenPMDD ? SymptomEngine.screenPMDD() : null;
+    if(pmddScreen?.pmddLikely){
+      flags.push({
+        id: 'pmdd',
+        level: 'review',
+        soft: {
+          icon: '🌊',
+          title: 'What you feel in your luteal phase has a name',
+          body: `Your pattern fits PMDD — the mood symptoms are real, cyclical, and treatable. Not 'in your head,' not something to push through. SSRIs (even luteal-phase only) work well. You deserve to have this addressed.`
+        },
+        clinical: {
+          finding: `DSM-5 PMDD pattern confirmed prospectively over ≥2 cycles. Luteal symptoms: ${(pmddScreen.lutealHits||[]).join(', ')||'(pending)'}.`,
+          criterion: 'DSM-5: ≥5 sx present in final week before menses, improving within few days of onset, minimal/absent in week post-menses. ≥1 must be affective (marked mood swings, irritability, depressed mood, anxiety). Prospective daily rating × 2 cycles required.',
+          differential: [
+            'PMDD (if prospective criteria met)',
+            'PMS (symptoms present but not meeting severity/affective threshold)',
+            'Premenstrual exacerbation of underlying MDD / anxiety / bipolar II',
+            'Thyroid dysfunction (overlapping sx)'
+          ],
+          workup: [
+            'Confirm with prospective Daily Record of Severity of Problems (DRSP) × 2 cycles if not already',
+            'Screen for comorbid MDD/anxiety/bipolar',
+            'TSH (to exclude)',
+            'First-line: SSRI — sertraline 50–100mg, fluoxetine 20mg (continuous or luteal-phase only days 14–28)',
+            'Second-line: COCP with drospirenone (Yaz), GnRH agonists',
+            'Adjuncts: CBT, calcium 1200mg, vit B6, exercise'
+          ],
+          citations: ['DSM-5-TR', 'ACOG CO 663', 'RCOG GTG 48']
+        }
+      });
+    }
+
+    // --- 14. Anemia risk ---
+    const fatigueCount = this._countSymptom(['fatigue','dizziness','breathless','palpitation'], 30);
+    const hasHeavyHistory = heavyPeriods.length >= 1 || longDurations.length >= 1;
+    if(hasHeavyHistory && fatigueCount >= 5){
+      flags.push({
+        id: 'anemia-risk',
+        level: 'review',
+        soft: {
+          icon: '💊',
+          title: 'Your iron might be low',
+          body: `Heavy flow plus the tiredness you've been logging — classic pattern for low iron. Get a CBC and ferritin done. If it's low, iron replacement actually feels like something the next month. Worth the blood draw.`
+        },
+        clinical: {
+          finding: `HMB/prolonged bleeding history + ${fatigueCount} days of fatigue/dizziness/breathlessness in last 30 days.`,
+          criterion: 'WHO: menstruating women lose 30–40 mL blood/cycle; HMB raises iron-deficiency risk ≥3×. Symptomatic iron deficiency can exist with normal Hb if ferritin <30.',
+          differential: [
+            'Iron-deficiency anemia (IDA)',
+            'Iron deficiency without anemia (low ferritin, normal Hb — still symptomatic)',
+            'Thyroid-related fatigue (coexisting common)',
+            'Vitamin B12/folate deficiency',
+            'Depression / sleep disorder'
+          ],
+          workup: [
+            'CBC — look at Hb, MCV, MCH, RDW',
+            'Ferritin — target >30 ng/mL, ideally >50; <15 diagnostic of iron deficiency',
+            'Transferrin saturation if ferritin equivocal (elevated in inflammation)',
+            'TSH (overlapping)',
+            'If IDA confirmed: ferrous ascorbate 100mg OD or bisglycinate 30mg OD + vit C, empty stomach, 3 months, recheck',
+            'Treat the HMB concurrently — treating iron alone without fixing blood loss is incomplete'
+          ],
+          citations: ['WHO 2011', 'BSH iron deficiency guideline 2021']
+        }
+      });
+    }
+
+    // --- 15. Intermenstrual bleeding ---
+    const periodRanges = Store.periods.map(p => ({start:p.start, end: p.end || U.addDays(p.start, 7)}));
+    const bleedLogs = Store.logs.filter(l => (l.symptoms||[]).some(s => /spot|bleeding/i.test(s)));
+    const imb = bleedLogs.filter(l => !periodRanges.some(r => l.date >= r.start && l.date <= r.end));
+    if(imb.length >= 2){
+      flags.push({
+        id: 'imb',
+        level: 'review',
+        soft: {
+          icon: '🌸',
+          title: 'Bleeding between periods — worth investigating',
+          body: `Spotting between cycles on ${imb.length} occasions. Usually benign (cervical stuff, hormonal), but it's one of those things where imaging + a Pap clears it up cleanly. Book it.`
+        },
+        clinical: {
+          finding: `Intermenstrual bleeding on ${imb.length} dates: ${imb.slice(-4).map(l=>U.fmt(l.date)).join(', ')}.`,
+          criterion: 'FIGO AUB-I: intermenstrual bleeding. NICE: new-onset IMB always warrants assessment; PALM-COEIN framework.',
+          differential: [
+            'PALM: polyp (AUB-P), adenomyosis, submucosal fibroid, endometrial hyperplasia/malignancy',
+            'Cervical: ectropion, cervicitis, polyp, cervical cancer',
+            'COEIN: ovulatory (mid-cycle estrogen dip), endometrial dysfunction, iatrogenic (breakthrough on hormonal contraception)',
+            'Implantation bleeding (early pregnancy)',
+            'STI / PID'
+          ],
+          workup: [
+            'β-hCG',
+            'Pap smear + HPV if due',
+            'Visual cervical inspection',
+            'TVS day 5–10',
+            'Endometrial sampling if risk factors (age ≥45, obesity, anovulation, tamoxifen, Lynch, persistent IMB)',
+            'Review contraception — breakthrough on pill is common, adjust method',
+            'STI screen if risk'
+          ],
+          citations: ['FIGO 2018 AUB-I', 'NICE NG12 (Suspected Cancer)', 'ACOG PB 128']
+        }
+      });
+    }
+
+    return flags;
+  },
+
+  // Helpers for UI
+  levelLabel(level){
+    return ({watch:'Keeping an eye', review:'Worth a look', alert:'Please act on this', urgent:'Today, please'})[level] || level;
+  },
+  levelColor(level){
+    return ({watch:'var(--text-dim)', review:'var(--gold)', alert:'var(--coral)', urgent:'var(--coral)'})[level] || 'var(--text-dim)';
+  }
+};
+
+/* -------------------- InsightEngine --------------------
+   Phase-aware, personalized daily tips. Draws from all engines.
+*/
+const InsightEngine = {
+  getDailyInsight(){
+    const phase = CycleEngine.getCurrentPhase();
+    const stats = CycleEngine.getStats();
+    const recentLogs = Store.logs.slice(-7);
+    const avgPain = recentLogs.filter(l=>l.pain).length ? U.mean(recentLogs.filter(l=>l.pain).map(l=>l.pain.level)) : null;
+    const late = CycleEngine.isLate();
+
+    // Priority 1: late period
+    if(late.late && late.days > 3 && late.days < 90){
+      return {
+        header: 'Cycle note',
+        body: `You're ${late.days} day${late.days>1?'s':''} past your predicted date${late.beyondCI?' (and beyond your usual variation)':''}. For irregular cycles this is normal — try not to spiral. If pregnancy is a possibility, test now. Otherwise log how you feel and hold steady.`,
+        ebm: stats.regularity.includes('irregular') ? 'Irregular cycles routinely have ±7-day variation.' : 'Monitor; evaluate if >45 days.'
+      };
+    }
+
+    // Priority 2: currently in period, advise based on pain/flow
+    if(phase.phase === 'menstrual'){
+      const active = Store.getActivePeriod();
+      const cycleDay = phase.cycleDay;
+      if(cycleDay <= 2){
+        return {
+          header: 'Day ' + cycleDay + ' · Be gentle',
+          body: 'The first 48 hours are usually the worst. Start mefenamic acid 500mg TDS WITH food at first cramp — don\'t wait for the pain to peak. Heat pad on the lower abdomen. Hydrate aggressively (prostaglandins love dehydration). Gentle walking helps more than you\'d expect.',
+          ebm: 'NSAIDs reduce prostaglandin-mediated cramps; mefenamic acid is first-line in India.'
+        };
+      } else if(cycleDay <= 5){
+        return {
+          header: 'Day ' + cycleDay + ' · Mid-period',
+          body: 'Flow usually tapers now. Continue NSAIDs as needed, not scheduled. Iron-rich foods matter this week — jaggery, spinach, lentils, eggs. Vitamin C alongside improves absorption by 3x.',
+          ebm: 'Bioavailability of non-heme iron increases with ascorbic acid.'
+        };
+      }
+    }
+
+    // Priority 3: follicular/ovulatory — energy window
+    if(phase.phase === 'follicular' || phase.phase === 'ovulatory'){
+      return {
+        header: phase.phase === 'ovulatory' ? 'Peak window' : 'Follicular phase',
+        body: phase.phase === 'ovulatory'
+          ? 'Energy and cognition usually peak now (rising estrogen, LH surge). If you\'re planning focused study blocks or tough GT attempts this week — schedule them here. Some women get mittelschmerz (mid-cycle ovulation pain) — usually brief, one-sided, normal.'
+          : 'Estrogen rising, energy building. This is your best window for heavier workload, demanding study, harder workouts. Your brain is sharper here — use it.',
+        ebm: 'Estrogen peak correlates with verbal memory and executive function performance.'
+      };
+    }
+
+    // Priority 4: luteal — PMS prep
+    if(phase.phase === 'luteal'){
+      const daysToNext = CycleEngine.predictNext()?.daysUntil ?? 7;
+      if(daysToNext <= 3){
+        return {
+          header: 'Pre-menstrual phase',
+          body: `Period expected in ~${daysToNext} day${daysToNext!==1?'s':''}. Stock up on pads, pain meds. If you've been feeling irritable, anxious, or crampy the last few days — it's biochemistry, not you failing. Magnesium glycinate 200–400mg in the evening genuinely helps PMS symptoms (level A evidence for premenstrual pain and mood).`,
+          ebm: 'Cochrane 2023: Magnesium reduces premenstrual symptom severity vs placebo.'
+        };
+      } else {
+        return {
+          header: 'Luteal phase',
+          body: 'Progesterone is dominant now. Expect slight dips in energy, possibly sleep changes, possibly cravings. Not weakness — hormonal biology. Keep protein steady (~1.6g/kg), don\'t skip meals, prioritize sleep this week.',
+          ebm: 'Luteal phase BMR rises ~5-10%; hunger and cravings are physiological.'
+        };
+      }
+    }
+
+    return {
+      header: 'Welcome back',
+      body: 'Log a few more cycles and this becomes genuinely useful. Even one tap a day helps me learn your pattern.',
+      ebm: ''
+    };
+  },
+  getPatterns(){
+    const patterns = [];
+    const stats = CycleEngine.getStats();
+    if(stats.n >= 3){
+      patterns.push({
+        title: 'Cycle regularity',
+        text: `Your last ${Math.min(stats.recent.length,6)} cycles: ${stats.recent.join(', ')} days. Mean ${stats.recentMean.toFixed(1)}d, range ${stats.range}d. ${
+          stats.regularity==='very_regular' ? 'Textbook regular.' :
+          stats.regularity==='normal' ? 'Within normal variation (≤9d).' :
+          stats.regularity==='irregular' ? 'Irregular — variation exceeds 9 days.' :
+          'Very irregular pattern.'
+        }`
+      });
+    }
+
+    const sig = SymptomEngine.getPersonalSignature();
+    if(sig){
+      // Find top 3 phase-clustered symptoms
+      const clusters = [];
+      SymptomEngine.SYMPTOMS.forEach(s=>{
+        const data = sig.signature[s];
+        if(!data) return;
+        Object.keys(data).forEach(phase=>{
+          if(data[phase] && data[phase].pct >= 0.4 && data[phase].n >= 3){
+            clusters.push({symptom:s, phase, pct:data[phase].pct});
+          }
+        });
+      });
+      clusters.sort((a,b)=>b.pct-a.pct);
+      clusters.slice(0,4).forEach(c=>{
+        patterns.push({
+          title: `${c.symptom} clusters in ${c.phase} phase`,
+          text: `Present in ${Math.round(c.pct*100)}% of your ${c.phase}-phase logs. This is now factored into your daily tips.`
+        });
+      });
+    }
+
+    const pain = SymptomEngine.painByPhase();
+    if(pain){
+      const max = Object.entries(pain).filter(([k,v])=>v!=null).sort((a,b)=>b[1]-a[1])[0];
+      if(max){
+        patterns.push({
+          title: `Pain peaks in ${max[0]} phase`,
+          text: `Average pain ${max[1].toFixed(1)}/10 in ${max[0]} phase vs ${Object.entries(pain).filter(([k,v])=>v!=null&&k!==max[0]).map(([k,v])=>v.toFixed(1)).join('/')} in others.`
+        });
+      }
+    }
+    // --- Sleep pattern by cycle phase (needs ≥6 logs total, ≥2 per contrasting phase) ---
+    const sleepLogs = Store.logs.filter(l => typeof l.sleep === 'number' && l.sleep > 0);
+    if(sleepLogs.length >= 6){
+      const sleepByPhase = {menstrual:[], follicular:[], ovulatory:[], luteal:[]};
+      sleepLogs.forEach(l => {
+        const p = SymptomEngine._phaseForDate(l.date);
+        if(sleepByPhase[p]) sleepByPhase[p].push(l.sleep);
+      });
+      const means = {};
+      Object.keys(sleepByPhase).forEach(p => {
+        if(sleepByPhase[p].length >= 2) means[p] = U.mean(sleepByPhase[p]);
+      });
+      const vals = Object.values(means);
+      if(vals.length >= 2){
+        const max = Math.max(...vals), min = Math.min(...vals);
+        if((max - min) >= 0.6){  // 36 minutes meaningful difference
+          const worstPhase = Object.keys(means).find(k => means[k] === min);
+          patterns.push({
+            title: `Sleep dips in ${worstPhase} phase`,
+            text: `Average ${min.toFixed(1)}h during ${worstPhase} vs ${max.toFixed(1)}h in ${Object.keys(means).find(k=>means[k]===max)}. Worth knowing — fatigue in that phase may be real sleep debt, not just hormones.`
+          });
+        }
+      }
+    }
+
+    // --- Stress × pain correlation (needs ≥10 logs with both) ---
+    const dualLogs = Store.logs.filter(l => typeof l.stress === 'number' && l.pain?.level > 0);
+    if(dualLogs.length >= 10){
+      // Simple Spearman-style: high stress (≥7) vs low stress (≤4) → mean pain difference
+      const highStress = dualLogs.filter(l => l.stress >= 7).map(l => l.pain.level);
+      const lowStress  = dualLogs.filter(l => l.stress <= 4).map(l => l.pain.level);
+      if(highStress.length >= 3 && lowStress.length >= 3){
+        const hp = U.mean(highStress), lp = U.mean(lowStress);
+        if((hp - lp) >= 1.5){
+          patterns.push({
+            title: 'Stress seems to amplify your pain',
+            text: `Pain averages ${hp.toFixed(1)}/10 on high-stress days vs ${lp.toFixed(1)}/10 on low-stress ones. Worth factoring in during exam weeks — relaxation and sleep may help almost as much as NSAIDs.`
+          });
+        }
+      }
+    }
+
+    return patterns;
+  }
+};
+
+/* -------------------- LoveEngine --------------------
+   Contextual notes from Rutik. Context-keyed, deterministic per day so it doesn't
+   flicker on re-render. Pool selection priority (first match wins):
+     red_flag_urgent > red_flag_gentle > pain_high > late_beyond_variance
+     > late_within_variance > new_cycle_day_one > gap_return > pre_period
+     > period (heavy/mid) > ovulatory > luteal (late_luteal/early_luteal)
+     > follicular > general
+*/
+const LoveEngine = {
+  notes: {
+    // Urgent tier — only fires when RedFlagEngine has an urgent-level flag
+    red_flag_urgent: [
+      "Something in your logs needs attention today, not next week. Read what's above, tell me you're going in, and I'll meet you there if you want. Don't sit on this one.",
+      "This is the 'call now' kind, love. I built this exactly so we'd catch moments like this early. Go in today. I'm here."
+    ],
+    // Review/alert flags — softer but serious
+    red_flag_gentle: [
+      "I flagged something above. Don't panic — this is why we track. Read it, screenshot it if you want, and let's go to a gynae together. I'll come.",
+      "The whole point of this app is so we catch things early, together. Whatever it found, we'll sort it out. You're not figuring any of this out alone.",
+      "I built the flags to be honest, not scary. Whatever it said, we look at it together. That's the deal."
+    ],
+
+    // Pain intercept — pain ≥7/10 logged recently
+    pain_high: [
+      "That's a lot of pain. Take the mefenamic acid, heat pad on, and please don't try to push through a lecture today. I logged it so we have the pattern.",
+      "Pain that bad isn't something to tough out. Meds, rest, and if it keeps going — we're not 'wait and see' people anymore, we're 'get it checked' people. Okay?"
+    ],
+
+    // Late cycles
+    late_beyond_variance: [
+      "It's been a while, and this one's outside your usual pattern. Breathe. Test if there's any chance, then log how you feel. I've got us.",
+      "Past your usual window now. Not panicking — just paying attention. Let's give it another few days, and I'll be honest with you if it crosses the line."
+    ],
+    late_within_variance: [
+      "Your cycles run wide, love — this is still well inside your pattern. Breathe. I'll tell you when it's actually time to wonder.",
+      "Still within your normal. Irregular cycles do this. I've seen the numbers, you're fine."
+    ],
+
+    // Cycle transitions — the small moments
+    new_cycle_day_one: [
+      "Day one. Your body's doing what it's designed to. Be extra gentle today — you've earned the slow start.",
+      "New cycle starting. Hot water bottle, mefenamic acid in the cupboard if you need it, and nothing on the schedule is more important than you being okay.",
+      "Cycle reset. Rest is productive today. I'll handle the small stuff, just focus on you."
+    ],
+    pre_period: [
+      "She's due in a day or two. Mefenamic acid near the bed, hot water bottle charged, and nothing on you has to be productive on day one. I've got the rest.",
+      "Period's close. If your mood dipped or the small things are feeling big — it's hormones, not you. I love you through all the versions of you.",
+      "Last few days before. Sleep early tonight if you can. Magnesium before bed. You know the drill."
+    ],
+
+    // Reopen after a gap in logging
+    gap_return: [
+      "Missed you in here. No pressure — glad you're back.",
+      "Welcome back. No backlog, no guilt. Just start from today.",
+      "Been a minute. Your data's still here waiting. So am I."
+    ],
+
+    // Period (active)
+    period_heavy: [
+      "Today is brutal and I know it. Mefenamic acid, heat pad, twenty minutes on the couch — the world can wait twenty minutes. Love you.",
+      "Whatever you can manage today is enough. If it's just existing, that's enough. — R",
+      "Don't push through this one. Push into it — rest, hydrate, take the meds early. I'm a message away.",
+      "I know today is the hardest day. You don't have to perform okay around me. — R"
+    ],
+    period_mid: [
+      "You're in it. I see you doing the hard thing every month and making it look normal. It isn't normal. You're incredible.",
+      "Iron-rich food today — spinach, jaggery, eggs, dates. Your body's working hard for you.",
+      "Halfway through. You'll feel like yourself again soon. Hang in there.",
+      "Mid-period check: water, iron, meds on schedule. Proud of you for keeping going. — R"
+    ],
+    period_tail: [
+      "End of bleed soon. The fog lifts from here. Rutik says: go easy for one more day before you try to conquer anything."
+    ],
+
+    // Fertile / ovulatory
+    ovulatory: [
+      "Your peak week. Sharpest brain, best energy. Study like you mean it — you're remarkable when you're running full.",
+      "The week where everything feels possible. Because it is.",
+      "Estrogen peak, testosterone bump, confident brain. Use it well. I'm watching you thrive."
+    ],
+    ovulation_passed: [
+      "Fertile window closing — your body did its thing this cycle. Wind-down starts from here."
+    ],
+
+    // Follicular
+    follicular: [
+      "Estrogen's rising — your brain's about to feel sharp again. Good week to come at things hard.",
+      "I love watching you hit your stride. This week is made for you.",
+      "Good week ahead. Let's use it. I'm proud of you every day but especially these ones.",
+      "Follicular phase. New cycle, full tank. Whatever you start this week has wind at its back."
+    ],
+
+    // Luteal phase
+    luteal_early: [
+      "Mid-cycle. Things might feel a little heavier from here. That's hormones, not you slipping. Steady.",
+      "Be gentle with yourself this week. Progesterone's rising — everything asks for a bit more rest.",
+      "Second half of the cycle. The pace quietly changes. Let it."
+    ],
+    luteal_pms: [
+      "If you're snapping at small things or crying at advertisements, it's progesterone, not a personality change. I love you through all of it.",
+      "Your body is prepping. Cravings, tenderness, short fuse — all hormonal. Magnesium before bed. Sleep. I'll handle the small stuff tonight.",
+      "Pre-period is objectively hard. You don't have to pretend otherwise around me. — R",
+      "PMS week. Your brain is not your brain right now — it's your brain on hormones. Be kind to her."
+    ],
+
+    // General fallback pool
+    general: [
+      "You're the best thing I've ever built a life around. — R",
+      "Every day I'm grateful you're mine. Even on the days you don't feel like much. Especially those.",
+      "I built this because I wanted you to have something that actually gets you. Use it however you need. — R",
+      "Proud of you for trying. Proud of you for existing. Proud of you, always. — R",
+      "There is nothing about your body I am trying to fix. I am just trying to make the hard parts less lonely.",
+      "You are the calmest place my brain goes. Thank you for being mine.",
+      "Whatever this cycle brings, we face it together. That's the deal. — R",
+      "I think about you studying right now and I hope you know how much I see it. — R",
+      "This app is my voice in your pocket for the days I can't be in the room. Use it.",
+      "You carry so much. Let me carry this one small thing for you. — R"
+    ]
+  },
+
+  pick(phase, context={}){
+    if(!Store.settings.loveNotesOn) return null;
+
+    // Priority cascade — most specific context wins
+    let pool;
+
+    if(context.redFlagUrgent)      pool = this.notes.red_flag_urgent;
+    else if(context.redFlag)       pool = this.notes.red_flag_gentle;
+    else if(context.painHigh)      pool = this.notes.pain_high;
+    else if(context.lateBeyondCI)  pool = this.notes.late_beyond_variance;
+    else if(context.late)          pool = this.notes.late_within_variance;
+    else if(context.newCycleDay1)  pool = this.notes.new_cycle_day_one;
+    else if(context.gapReturn)     pool = this.notes.gap_return;
+    else if(context.prePeriod)     pool = this.notes.pre_period;
+    else if(phase==='menstrual'){
+      if(context.cycleDay<=2)      pool = this.notes.period_heavy;
+      else if(context.cycleDay<=4) pool = this.notes.period_mid;
+      else                         pool = this.notes.period_tail;
+    }
+    else if(context.ovulationPassed) pool = this.notes.ovulation_passed;
+    else if(phase==='ovulatory')   pool = this.notes.ovulatory;
+    else if(phase==='follicular')  pool = this.notes.follicular;
+    else if(phase==='luteal'){
+      pool = (context.daysToNext <= 3) ? this.notes.luteal_pms : this.notes.luteal_early;
+    }
+    else                           pool = this.notes.general;
+
+    // Deterministic-by-day: same note through the day, different tomorrow
+    const seed = Math.abs(this._hash(U.todayISO() + phase + (context.daysToNext||'') + (pool===this.notes.general?'g':'s')));
+    return pool[seed % pool.length];
+  },
+
+  // Build context automatically so callers don't have to re-derive it everywhere
+  buildContext(){
+    const phase = CycleEngine.getCurrentPhase();
+    const next = CycleEngine.predictNext();
+    const late = CycleEngine.isLate();
+    const flags = (typeof RedFlagEngine !== 'undefined') ? RedFlagEngine.scan() : [];
+    const recentLogs = Store.logs.slice(-14);
+    const painHigh = recentLogs.slice(-3).some(l => l.pain?.level >= 7);
+    const lastLogDate = recentLogs.length ? recentLogs[recentLogs.length-1].date : null;
+    const gapDays = lastLogDate ? U.daysBetween(lastLogDate, U.todayISO()) : 999;
+
+    return {
+      phase: phase.phase,
+      cycleDay: phase.cycleDay,
+      daysToNext: next?.daysUntil,
+      late: late.late && late.days>3 && !late.beyondCI,
+      lateBeyondCI: late.late && late.beyondCI,
+      newCycleDay1: phase.phase==='menstrual' && phase.cycleDay===1,
+      prePeriod: phase.phase==='luteal' && next?.daysUntil<=2 && next?.daysUntil>=0,
+      ovulationPassed: phase.phase==='luteal' && phase.cycleDay>=16 && phase.cycleDay<=18,
+      gapReturn: gapDays >= 4 && gapDays < 60,
+      painHigh,
+      redFlag: flags.length>0 && !flags.some(f=>f.level==='urgent'),
+      redFlagUrgent: flags.some(f=>f.level==='urgent')
+    };
+  },
+
+  _hash(s){ let h=0; for(let i=0;i<s.length;i++){ h=((h<<5)-h)+s.charCodeAt(i); h|=0;} return h; }
+};
+
+/* -------------------- Affections --------------------
+   Tiny in-the-moment care: log confirmations, gentle reminders.
+   Deterministic-by-minute so it varies but isn't chaos.
+*/
+const Affections = {
+  logConfirmations: [
+    "Logged. Proud of you for keeping up with this.",
+    "Got it. One more brick in knowing your body.",
+    "Noted, love.",
+    "Saved. I see you paying attention to yourself.",
+    "In the book. Good work, V.",
+    "Logged. Your future self will thank you for this kind of care."
+  ],
+  painHighIntercept: "That's a lot — please take something for it. Don't push through.",
+  newCycleGreeting: "Day one logged. Be gentle with yourself today. — R",
+
+  pickLogConfirmation(){
+    const seed = Math.floor(Date.now() / 60000); // changes each minute
+    return this.logConfirmations[seed % this.logConfirmations.length];
+  }
+};
+
+/* -------------------- Intake --------------------
+   Extended profile collected in Profile tab. Optional, skip-able, editable.
+   Stored in Store.intake. Fields feed the engines (RedFlag thresholds,
+   LoveEngine milestones, gated screenings).
+*/
+const Intake = {
+  SECTIONS: [
+    {
+      id: 'basics', icon: '🌱', label: 'The basics',
+      sub: 'Age, height, weight, menarche',
+      rutikNote: "Quick set of numbers. They let me calibrate everything else — what counts as a long cycle at 26 is different than at 40.",
+      fields: [
+        {k:'dob', type:'date', label:'Date of birth', help:'Used for age-specific thresholds. Stays on this device.'},
+        {k:'heightCm', type:'number', label:'Height (cm)', min:100, max:220},
+        {k:'weightKg', type:'number', label:'Weight (kg)', min:30, max:200, step:0.5, help:'Combined with height for BMI — affects workup weighting.'},
+        {k:'menarcheAge', type:'number', label:'Age when first period started', min:8, max:20, help:'Menarche age helps bleeding-disorder screening (early-onset HMB → higher pretest probability for vWD).'}
+      ]
+    },
+    {
+      id: 'cycle_history', icon: '🌙', label: 'Cycle history',
+      sub: 'Longest gap, longest period, first regular',
+      rutikNote: "The extremes you've seen before. Helps me tell what's truly new versus what you've always lived with.",
+      fields: [
+        {k:'firstRegularAge', type:'number', label:'Age cycles became regular', min:10, max:30, help:'Many cycles are irregular for the first 1–2 years after menarche — normal. Tells me your personal baseline.'},
+        {k:'longestGapEverDays', type:'number', label:'Longest gap you remember (days)', min:28, max:500, help:'Ever missed a cycle for 2+ months? Log the longest.'},
+        {k:'longestPeriodEverDays', type:'number', label:'Longest period ever (days)', min:3, max:30},
+        {k:'everBleedingBetween', type:'yesno', label:'Ever had bleeding between periods?'},
+        {k:'everPostcoitalBleed', type:'yesno', label:'Bleeding after intimacy?', help:'Specific signal for cervical causes. No pressure — skip if you want.'}
+      ]
+    },
+    {
+      id: 'obstetric', icon: '🌸', label: 'Pregnancy history',
+      sub: 'Optional — affects some flags',
+      rutikNote: "Only if it applies. Skip the whole section if it doesn't.",
+      fields: [
+        {k:'gravida', type:'number', label:'Pregnancies (G)', min:0, max:15},
+        {k:'para', type:'number', label:'Births (P)', min:0, max:15},
+        {k:'miscarriages', type:'number', label:'Miscarriages', min:0, max:15},
+        {k:'pphHistory', type:'yesno', label:'Any postpartum hemorrhage?', help:'PPH history raises priors for bleeding-disorder workup.'}
+      ]
+    },
+    {
+      id: 'sexual_gyn', icon: '💗', label: 'Intimate & gynae',
+      sub: 'Contraception, dyspareunia, past surgeries',
+      rutikNote: "Answered by you, read by me. Nothing here leaves your phone. I need these to flag the right things — answer or skip, both are fine.",
+      fields: [
+        {k:'sexuallyActive', type:'yesno', label:'Sexually active currently'},
+        {k:'contraception', type:'select', label:'Current contraception', options:[
+          {v:'none', l:'None'},
+          {v:'barrier', l:'Barrier (condom)'},
+          {v:'cocp', l:'Combined pill (COCP)'},
+          {v:'pop', l:'Progestin-only pill'},
+          {v:'cuIUD', l:'Copper IUD'},
+          {v:'lngIUS', l:'Mirena / LNG-IUS'},
+          {v:'implant', l:'Implant'},
+          {v:'injection', l:'Injectable (DMPA)'},
+          {v:'surgical', l:'Tubal / partner vasectomy'},
+          {v:'other', l:'Other'}
+        ]},
+        {k:'dyspareunia', type:'select', label:'Pain during intimacy', options:[
+          {v:'no', l:'No'}, {v:'superficial', l:'Yes, entry pain'}, {v:'deep', l:'Yes, deep pain'}, {v:'both', l:'Both'}
+        ], help:'Deep dyspareunia is one of the strongest clinical signals for endometriosis.'},
+        {k:'pastSurgeries', type:'multi', label:'Past gynae procedures', options:['D&C','LSCS','Laparoscopy','Laparotomy','Myomectomy','Cervical procedure','None']},
+        {k:'lastPap', type:'date', label:'Last Pap smear (if done)', help:'Leave blank if never / don\'t remember.'},
+        {k:'hpvVaccinated', type:'yesno', label:'HPV vaccinated'}
+      ]
+    },
+    {
+      id: 'medical_meds', icon: '💊', label: 'Medical & meds',
+      sub: 'Conditions, current medications',
+      rutikNote: "The stuff a gynae would ask on the first visit. Saves a round of 'did I mention...' later.",
+      fields: [
+        {k:'conditions', type:'multi', label:'Known conditions', options:['PCOS','Endometriosis','Adenomyosis','Fibroids','Hypothyroidism','Hyperthyroidism','Hyperprolactinemia','Diabetes','Hypertension','Bleeding disorder','Autoimmune','Depression','Anxiety','Migraine','None'], help:'Check any that apply. This replaces the onboarding question.'},
+        {k:'currentMeds', type:'multi', label:'Currently taking', options:['COCP','Progestin','LNG-IUS (Mirena)','Thyroid meds','SSRI/SNRI','Antipsychotic','Metformin','Anticoagulant','NSAIDs regularly','None']},
+        {k:'knownAllergies', type:'text', label:'Drug allergies (if any)'},
+        {k:'dailySupplements', type:'multi', label:'Daily supplements', options:['Iron','Vitamin D','B-complex','Omega-3','Magnesium','Calcium','Multivitamin','None']}
+      ]
+    },
+    {
+      id: 'family_hx', icon: '🌿', label: 'Family history',
+      sub: 'Mother / sisters',
+      rutikNote: "Only what you know. A lot of gynae stuff runs in families — shifts how alert I am about certain patterns.",
+      fields: [
+        {k:'fhxEndo', type:'yesno', label:'Endometriosis in mother/sister'},
+        {k:'fhxPCOS', type:'yesno', label:'PCOS in mother/sister'},
+        {k:'fhxFibroids', type:'yesno', label:'Fibroids in mother/sister'},
+        {k:'fhxGynCancer', type:'multi', label:'Family cancer history', options:['Breast','Ovarian','Endometrial','Cervical','Colorectal (Lynch)','None']},
+        {k:'fhxBleedingDis', type:'yesno', label:'Bleeding disorder in family', help:'von Willebrand, platelet disorders.'},
+        {k:'fhxEarlyMenopause', type:'yesno', label:'Mother: menopause before 45'},
+        {k:'fhxThyroid', type:'yesno', label:'Thyroid disease in family'}
+      ]
+    }
+  ],
+
+  completeness(){
+    const data = Store.intake || {};
+    let filled = 0, total = 0;
+    this.SECTIONS.forEach(s => {
+      s.fields.forEach(f => {
+        total++;
+        const v = data[f.k];
+        if(v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && !v.length)) filled++;
+      });
+    });
+    return {filled, total, pct: total ? Math.round(filled/total*100) : 0};
+  },
+
+  sectionComplete(sid){
+    const data = Store.intake || {};
+    const s = this.SECTIONS.find(x => x.id === sid);
+    if(!s) return false;
+    // A section is "complete" if at least half its fields have values — partial is fine
+    const filled = s.fields.filter(f => {
+      const v = data[f.k];
+      return v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && !v.length);
+    }).length;
+    return filled >= Math.ceil(s.fields.length / 2);
+  },
+
+  _val(k){ return (Store.intake || {})[k]; },
+
+  set(k, v){
+    const data = Store.intake || {};
+    data[k] = v;
+    Store.intake = data;
+    // Mirror `conditions` to profile so existing flag logic still sees it
+    if(k === 'conditions' && Store.profile){
+      const p = {...Store.profile, conditions: v};
+      Store.profile = p;
+    }
+  },
+
+  renderMain(host){
+    const c = this.completeness();
+    host.innerHTML = `
+      <div class="intake-progress">
+        <div class="intake-progress-bar">
+          <div class="intake-progress-fill" style="width:${c.pct}%"></div>
+        </div>
+        <div class="intake-progress-pct">${c.pct}%</div>
+      </div>
+      <div class="text-xs text-muted" style="margin-bottom:14px;line-height:1.55">
+        Skip anything, edit anything, come back anytime. Every answer sharpens what I flag and what I don't.
+        <div style="margin-top:6px;color:var(--gold);font-family:var(--serif);font-style:italic">— Rutik</div>
+      </div>
+      ${this.SECTIONS.map(s => {
+        const done = this.sectionComplete(s.id);
+        return `
+          <div class="intake-section ${done?'complete':''}" data-section="${s.id}">
+            <div class="intake-section-head" onclick="UI.toggleIntakeSection('${s.id}')">
+              <span class="intake-section-ico">${s.icon}</span>
+              <div style="flex:1;min-width:0">
+                <div class="intake-section-label">${s.label}</div>
+                <div class="intake-section-sub">${s.sub}</div>
+              </div>
+              ${done ? `<span class="intake-section-check">✓</span>` : ''}
+              <span class="sx-group-chev">▾</span>
+            </div>
+            <div class="sx-group-body">
+              <div class="intake-rutik-note">${s.rutikNote}</div>
+              <div class="intake-section-fields" id="intake-fields-${s.id}" style="padding:0 14px 14px"></div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+      <div class="card" style="margin-top:14px">
+        <div class="text-xs text-muted" style="line-height:1.55">
+          Your answers stay on this device. Nothing is synced anywhere. You can wipe all of it from Profile → Reset.
+        </div>
+      </div>
+    `;
+  },
+
+  renderSection(sid){
+    const s = this.SECTIONS.find(x => x.id === sid);
+    if(!s) return;
+    const host = document.getElementById(`intake-fields-${sid}`);
+    if(!host) return;
+    host.innerHTML = s.fields.map(f => this._renderField(f)).join('');
+    // Bind
+    s.fields.forEach(f => this._bindField(f));
+  },
+
+  _renderField(f){
+    const cur = this._val(f.k);
+    const sub = f.help ? `<span class="intake-field-sub">${f.help}</span>` : '';
+    if(f.type === 'text'){
+      return `<div class="intake-field">
+        <label class="intake-field-label">${f.label}</label>
+        <input type="text" class="text-input" id="if-${f.k}" value="${cur||''}" placeholder="—">
+        ${sub}
+      </div>`;
+    }
+    if(f.type === 'number'){
+      return `<div class="intake-field">
+        <label class="intake-field-label">${f.label}</label>
+        <input type="number" class="text-input" id="if-${f.k}" value="${cur ?? ''}" placeholder="—" ${f.min!==undefined?`min="${f.min}"`:''} ${f.max!==undefined?`max="${f.max}"`:''} ${f.step!==undefined?`step="${f.step}"`:'step="1"'}>
+        ${sub}
+      </div>`;
+    }
+    if(f.type === 'date'){
+      return `<div class="intake-field">
+        <label class="intake-field-label">${f.label}</label>
+        <input type="date" class="date-input" id="if-${f.k}" value="${cur||''}" max="${U.todayISO()}">
+        ${sub}
+      </div>`;
+    }
+    if(f.type === 'yesno'){
+      return `<div class="intake-field">
+        <label class="intake-field-label">${f.label}</label>
+        <div class="intake-grid-3" id="if-${f.k}">
+          ${[{v:'yes',l:'Yes'},{v:'no',l:'No'},{v:'unsure',l:'Not sure'}].map(o=>`
+            <div class="chip ${cur===o.v?'selected':''}" data-v="${o.v}">${o.l}</div>
+          `).join('')}
+        </div>
+        ${sub}
+      </div>`;
+    }
+    if(f.type === 'select'){
+      return `<div class="intake-field">
+        <label class="intake-field-label">${f.label}</label>
+        <div class="chip-grid" id="if-${f.k}">
+          ${f.options.map(o=>`
+            <div class="chip ${cur===o.v?'selected':''}" data-v="${o.v}">${o.l}</div>
+          `).join('')}
+        </div>
+        ${sub}
+      </div>`;
+    }
+    if(f.type === 'multi'){
+      const arr = Array.isArray(cur) ? cur : [];
+      return `<div class="intake-field">
+        <label class="intake-field-label">${f.label}</label>
+        <div class="chip-grid" id="if-${f.k}" data-multi="1">
+          ${f.options.map(o=>{
+            const v = typeof o === 'string' ? o : o.v;
+            const l = typeof o === 'string' ? o : o.l;
+            return `<div class="chip ${arr.includes(v)?'selected':''}" data-v="${v}">${l}</div>`;
+          }).join('')}
+        </div>
+        ${sub}
+      </div>`;
+    }
+    return '';
+  },
+
+  _bindField(f){
+    const host = document.getElementById(`if-${f.k}`);
+    if(!host) return;
+    if(f.type === 'text' || f.type === 'number' || f.type === 'date'){
+      host.addEventListener('change', ()=>{
+        let v = host.value;
+        if(f.type === 'number') v = v === '' ? null : +v;
+        Intake.set(f.k, v);
+        Intake._refreshSectionStatus(f);
+      });
+      return;
+    }
+    if(f.type === 'yesno' || f.type === 'select'){
+      host.querySelectorAll('.chip').forEach(c => c.addEventListener('click', ()=>{
+        host.querySelectorAll('.chip').forEach(x => x.classList.remove('selected'));
+        c.classList.add('selected');
+        Intake.set(f.k, c.dataset.v);
+        Intake._refreshSectionStatus(f);
+      }));
+      return;
+    }
+    if(f.type === 'multi'){
+      host.querySelectorAll('.chip').forEach(c => c.addEventListener('click', ()=>{
+        c.classList.toggle('selected');
+        const values = [...host.querySelectorAll('.chip.selected')].map(x => x.dataset.v);
+        Intake.set(f.k, values);
+        Intake._refreshSectionStatus(f);
+      }));
+    }
+  },
+
+  _refreshSectionStatus(f){
+    // Find which section this field belongs to and update the ✓ + progress bar
+    const section = this.SECTIONS.find(s => s.fields.some(x => x.k === f.k));
+    if(section){
+      const el = document.querySelector(`.intake-section[data-section="${section.id}"]`);
+      if(el){
+        const done = this.sectionComplete(section.id);
+        el.classList.toggle('complete', done);
+        let check = el.querySelector('.intake-section-check');
+        if(done && !check){
+          const head = el.querySelector('.intake-section-head');
+          const chev = head.querySelector('.sx-group-chev');
+          const c = document.createElement('span');
+          c.className = 'intake-section-check';
+          c.textContent = '✓';
+          head.insertBefore(c, chev);
+        } else if(!done && check){
+          check.remove();
+        }
+      }
+    }
+    // Update progress
+    const c = this.completeness();
+    const bar = document.querySelector('.intake-progress-fill');
+    const pct = document.querySelector('.intake-progress-pct');
+    if(bar) bar.style.width = c.pct + '%';
+    if(pct) pct.textContent = c.pct + '%';
+  }
+};
+
+
+/* -------------------- UI Controller -------------------- */
+const UI = {
+  current: 'home',
+  _lastRenderAt: 0,
+  bindEvents(){
+    // Nav tabs
+    document.querySelectorAll('.nav-btn').forEach(b=>{
+      // Avoid double-binding if called more than once
+      if(b._bloomBound) return;
+      b._bloomBound = true;
+      b.addEventListener('click', ()=>UI.switchTo(b.dataset.screen));
+    });
+    // Resume hooks: re-render on return from background / bfcache / tab switch
+    if(!window._bloomLifecycleBound){
+      window._bloomLifecycleBound = true;
+      const resume = (reason)=>{
+        try {
+          // Reload any data that might have been stale
+          Store.init();
+          // Re-render current screen from scratch
+          if(document.getElementById('app').style.display !== 'none'){
+            UI.render(UI.current);
+          }
+          // Rescan red flags on resume
+          try { RedFlagEngine.scan(); } catch(e){}
+        } catch(e){ console.warn('[Bloom] resume failed', reason, e); }
+      };
+      document.addEventListener('visibilitychange', ()=>{
+        if(document.visibilityState === 'visible') resume('visibility');
+      });
+      window.addEventListener('pageshow', (e)=>{
+        // e.persisted=true means restored from bfcache
+        resume(e.persisted ? 'bfcache' : 'pageshow');
+      });
+      window.addEventListener('focus', ()=>resume('focus'));
+    }
+  },
+  switchTo(screen){
+    this.current = screen;
+    try { localStorage.setItem('bloom_ui_tab', screen); } catch(e){}
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    const target = document.getElementById(screen+'-screen');
+    if(target) target.classList.add('active');
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active', b.dataset.screen===screen));
+    this.render(screen);
+    // scroll to top
+    const scr = document.getElementById('screens');
+    if(scr) scr.scrollTop = 0;
+  },
+  render(screen){
+    const map = {home:this.renderHome, log:this.renderLog, insights:this.renderInsights, calendar:this.renderCalendar, profile:this.renderProfile};
+    try {
+      if(map[screen]) map[screen].call(this);
+      this.updateTopBar();
+      this._lastRenderAt = Date.now();
+    } catch(err){
+      console.error('[Bloom] render failed for', screen, err);
+      // Fallback: show a minimal recoverable UI rather than a blank screen
+      const target = document.getElementById(screen+'-screen');
+      if(target){
+        target.innerHTML = `
+          <div style="padding:32px;text-align:center">
+            <div style="font-size:48px;margin-bottom:16px">🌸</div>
+            <h3 style="margin-bottom:8px">Something hiccupped</h3>
+            <p style="color:var(--text-dim);margin-bottom:24px;font-size:14px">
+              Your data is safe. Tap below to reload.
+            </p>
+            <button class="btn btn-primary" onclick="location.reload()">Reload Bloom</button>
+            <details style="margin-top:24px;text-align:left;font-size:12px;color:var(--text-dim)">
+              <summary>Technical detail</summary>
+              <pre style="white-space:pre-wrap;margin-top:8px">${(err && err.message) || err}</pre>
+            </details>
+          </div>`;
+      }
+    }
+  },
+  updateTopBar(){
+    const phase = CycleEngine.getCurrentPhase();
+    const el = document.getElementById('topCycleBadge');
+    if(!el) return;
+    // Once we're past ~60 days from last period, the "cycle day" concept breaks down —
+    // show the gap instead of a misleading phase label
+    if(phase.cycleDay && phase.cycleDay > 60){
+      el.innerHTML = `<strong>Day ${phase.cycleDay}</strong> · late`;
+    } else if(phase.cycleDay){
+      el.innerHTML = `Day <strong>${phase.cycleDay}</strong> · ${phase.phase}`;
+    } else {
+      el.innerHTML = `<strong>Bloom</strong>`;
+    }
+  },
+
+  /* ---------- Flag rendering helper (two-layer: soft surface + clinical drawer) ---------- */
+  renderFlagCard(f, opts = {}){
+    // opts.compact = true for home screen (slightly tighter), false for insights
+    const lvlLabel = RedFlagEngine.levelLabel(f.level);
+    const soft = f.soft || {};
+    const clin = f.clinical || {};
+    const fid = `flag-${f.id || Math.random().toString(36).slice(2,8)}`;
+    return `
+      <div class="flag-card ${f.level}" id="${fid}">
+        <div class="flag-head">
+          <div class="flag-ico">${soft.icon || '·'}</div>
+          <div class="flag-main">
+            <div class="flag-level">${lvlLabel}</div>
+            <div class="flag-title">${soft.title || 'Something to note'}</div>
+            <div class="flag-body">${soft.body || ''}</div>
+            <span class="flag-rutik-sig">— Rutik</span>
+          </div>
+        </div>
+        <div class="flag-expand" onclick="UI.toggleFlag('${fid}')">
+          <span class="chev">▾</span>
+          <span class="flag-expand-label">The clinical detail</span>
+        </div>
+        <div class="flag-drawer">
+          <div class="flag-drawer-inner">
+            ${clin.finding ? `
+              <div class="flag-section">
+                <div class="flag-section-head">Finding</div>
+                <div class="flag-section-body">${clin.finding}</div>
+              </div>` : ''}
+            ${clin.criterion ? `
+              <div class="flag-section">
+                <div class="flag-section-head">Criterion</div>
+                <div class="flag-section-body">${clin.criterion}</div>
+              </div>` : ''}
+            ${clin.differential?.length ? `
+              <div class="flag-section">
+                <div class="flag-section-head">Differential to consider</div>
+                <ul class="flag-list">
+                  ${clin.differential.map(d=>`<li>${d}</li>`).join('')}
+                </ul>
+              </div>` : ''}
+            ${clin.workup?.length ? `
+              <div class="flag-section">
+                <div class="flag-section-head">Suggested workup</div>
+                <ul class="flag-list">
+                  ${clin.workup.map(w=>`<li>${w}</li>`).join('')}
+                </ul>
+              </div>` : ''}
+            ${clin.citations?.length ? `
+              <div class="flag-section">
+                <div class="flag-section-head">Sources</div>
+                <div class="flag-citations">
+                  ${clin.citations.map(c=>`<span class="flag-cite">${c}</span>`).join('')}
+                </div>
+              </div>` : ''}
+            <div class="flag-verify">
+              Pattern-match, not diagnosis. Cross-check with Rutik before acting on it — that's what he built this for.
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+  toggleFlag(id){
+    const el = document.getElementById(id);
+    if(!el) return;
+    const opening = !el.classList.contains('open');
+    el.classList.toggle('open');
+    const label = el.querySelector('.flag-expand-label');
+    if(label) label.textContent = opening ? 'Close detail' : 'The clinical detail';
+  },
+  toggleSxGroup(gid){
+    const el = document.querySelector(`.sx-group[data-group="${gid}"]`);
+    if(el) el.classList.toggle('open');
+  },
+  toggleIntakeSection(sid){
+    const el = document.querySelector(`.intake-section[data-section="${sid}"]`);
+    if(!el) return;
+    const open = el.classList.toggle('open');
+    // Render the section body on open (lazy)
+    if(open) Intake.renderSection(sid);
+  },
+
+  /* ---------- HOME ---------- */
+  renderHome(){
+    const host = document.getElementById('home-screen');
+    const phase = CycleEngine.getCurrentPhase();
+    const next = CycleEngine.predictNext();
+    const ov = CycleEngine.predictOvulation();
+    const stats = CycleEngine.getStats();
+    const flags = RedFlagEngine.scan();
+    const insight = InsightEngine.getDailyInsight();
+    const late = CycleEngine.isLate();
+    const active = Store.getActivePeriod();
+    const loveCtx = LoveEngine.buildContext();
+    const love = LoveEngine.pick(phase.phase, loveCtx);
+
+    // Phase label display
+    const phaseLabel = {
+      menstrual:'Menstrual phase',
+      follicular:'Follicular phase',
+      ovulatory:'Ovulatory phase',
+      luteal:'Luteal phase',
+      unknown:'Getting started'
+    }[phase.phase] || 'Tracking';
+
+    // Prediction text
+    let predText = '';
+    if(next && phase.phase!=='menstrual'){
+      if(next.daysUntil >= 0) predText = `Next period in <strong>${next.daysUntil} day${next.daysUntil!==1?'s':''}</strong> · window ${U.fmt(next.earliest)} – ${U.fmt(next.latest)}`;
+      else predText = `Predicted date ${U.fmt(next.predicted)} passed · ${Math.abs(next.daysUntil)} day${Math.abs(next.daysUntil)!==1?'s':''} late`;
+    } else if(phase.phase==='menstrual'){
+      predText = `Currently on period · day ${phase.cycleDay}`;
+    } else {
+      predText = 'Log your first period to start predictions';
+    }
+
+    // Fertile window (show if in or near, and not TTC focus — just information)
+    let fertileText = '';
+    if(ov && phase.phase !== 'menstrual'){
+      const today = U.todayISO();
+      if(today >= ov.fertileStart && today <= ov.fertileEnd){
+        fertileText = `<div style="font-size:0.82rem;color:var(--sage);margin-top:8px">• In fertile window (ovulation ~${U.fmt(ov.ovulation)})</div>`;
+      }
+    }
+
+    host.innerHTML = `
+      <div class="hero-card">
+        <div class="hero-phase">${phaseLabel}</div>
+        <div class="hero-day">${phase.cycleDay ? 'Day '+phase.cycleDay : 'Setup'}</div>
+        <div class="hero-sub">${
+          phase.phase==='menstrual' ? (active?'Flow logged today? Tap Log to update.':'On period — log flow so we track duration accurately.') :
+          phase.phase==='follicular' ? 'Energy building. Good study window ahead.' :
+          phase.phase==='ovulatory' ? 'Peak cognitive window. Use it.' :
+          phase.phase==='luteal' ? 'Pre-menstrual phase.' : 'Track at least one period to unlock predictions.'
+        }</div>
+        <div class="hero-prediction">${predText}</div>
+        ${fertileText}
+      </div>
+
+      ${flags.length ? `
+        <div class="section">
+          <div class="section-title">
+            ${flags.some(f=>f.level==='urgent') ? 'Please look at this' : flags.some(f=>f.level==='alert') ? 'Worth your attention' : "What I'd like us to check"}
+            <span class="sub">${flags.length} thing${flags.length!==1?'s':''}</span>
+          </div>
+          ${flags.map(f => UI.renderFlagCard(f, {compact:true})).join('')}
+        </div>
+      ` : ''}
+
+      ${love ? `
+        <div class="love-note">
+          ${love}
+          <span class="love-sig">— Rutik</span>
+        </div>
+      ` : ''}
+
+      <div class="section">
+        <div class="section-title">Today <span class="sub">Personalised</span></div>
+        <div class="tip-card">
+          <div class="tip-header">💡 ${insight.header}</div>
+          <div class="tip-body">${insight.body}</div>
+          ${insight.ebm ? `<div class="tip-ebm">${insight.ebm}</div>` : ''}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Quick log</div>
+        <div class="quick-actions">
+          ${!active ? `
+            <button class="quick-action" onclick="UI.quickLogPeriodStart()">
+              <div class="qa-icon">🩸</div>
+              <div class="qa-title">Period started</div>
+              <div class="qa-sub">Log start day</div>
+            </button>
+          ` : `
+            <button class="quick-action" onclick="UI.quickEndPeriod()">
+              <div class="qa-icon">✓</div>
+              <div class="qa-title">Period ended</div>
+              <div class="qa-sub">Log end day</div>
+            </button>
+          `}
+          <button class="quick-action" onclick="UI.switchTo('log')">
+            <div class="qa-icon">✏</div>
+            <div class="qa-title">Symptoms & pain</div>
+            <div class="qa-sub">Today's log</div>
+          </button>
+          <button class="quick-action" onclick="UI.showQuickMood()">
+            <div class="qa-icon">🎭</div>
+            <div class="qa-title">Mood</div>
+            <div class="qa-sub">One tap</div>
+          </button>
+          <button class="quick-action" onclick="UI.showQuickNote()">
+            <div class="qa-icon">📝</div>
+            <div class="qa-title">Free note</div>
+            <div class="qa-sub">Anything on your mind</div>
+          </button>
+        </div>
+      </div>
+
+      ${stats.n>=1 ? `
+        <div class="section">
+          <div class="section-title">At a glance</div>
+          <div class="stat-row">
+            <div class="stat-card">
+              <div class="stat-val">${Math.round(stats.recentMean)}</div>
+              <div class="stat-label">Avg cycle (d)</div>
+              <div class="stat-sub">${stats.n} cycles</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val">${stats.range||'—'}</div>
+              <div class="stat-label">Variation (d)</div>
+              <div class="stat-sub">${stats.regularity==='very_regular'?'Very regular':stats.regularity==='normal'?'Normal':stats.regularity==='irregular'?'Irregular':stats.regularity==='very_irregular'?'Very irregular':'Learning'}</div>
+            </div>
+          </div>
+        </div>
+      ` : ''}
+    `;
+  },
+
+  /* ---------- LOG ---------- */
+  renderLog(){
+    const host = document.getElementById('log-screen');
+    const today = U.todayISO();
+    const existing = Store.getLog(today) || {};
+    const active = Store.getActivePeriod();
+    const flowToday = active ? (active.flow||[]).find(f=>f.date===today) : null;
+
+    host.innerHTML = `
+      <div class="section">
+        <h2 style="margin-bottom:4px">Log for today</h2>
+        <div class="text-muted text-sm" style="margin-bottom:16px">${U.fmtLong(today)} · tap anything you feel</div>
+      </div>
+
+      ${active ? `
+        <div class="card">
+          <div class="log-label">
+            <span>Flow volume today</span>
+            <span class="log-label-sub">Drops = intensity</span>
+          </div>
+          <div class="flow-selector" id="flowSelector">
+            ${[
+              {v:0,l:'None'},{v:1,l:'Spotting'},{v:2,l:'Light'},{v:3,l:'Medium'},{v:4,l:'Heavy'},{v:5,l:'Flooding'}
+            ].map(o=>`
+              <div class="flow-opt ${flowToday?.volume===o.v?'selected':''}" data-v="${o.v}" onclick="UI.selectFlow(${o.v})">
+                <div class="flow-drop"></div>
+                <div class="flow-label">${o.l}</div>
+              </div>
+            `).join('')}
+          </div>
+          <button class="btn btn-ghost text-sm" style="margin-top:10px" onclick="UI.quickEndPeriod()">Period ended today →</button>
+        </div>
+      ` : `
+        <div class="card">
+          <div class="log-label">Bleeding today?</div>
+          <button class="btn btn-primary btn-full" onclick="UI.quickLogPeriodStart()">Log as period start</button>
+          <div class="text-xs text-muted text-center" style="margin-top:10px">Use this only for the first day of actual period bleeding, not spotting.</div>
+        </div>
+      `}
+
+      <div class="card">
+        <div class="log-label">
+          <span>Pain level</span>
+          <span class="log-label-sub">0 = none · 10 = worst</span>
+        </div>
+        <div class="pain-current" id="painCurrent">${existing.pain?.level ?? 0}</div>
+        <div class="pain-current-label" id="painCurrentLabel">${UI.painLabel(existing.pain?.level ?? 0)}</div>
+        <div class="pain-slider-wrap">
+          <input type="range" class="pain-slider" id="painSlider" min="0" max="10" step="1" value="${existing.pain?.level ?? 0}">
+          <div class="pain-value"><span>No pain</span><span>Severe</span></div>
+        </div>
+        <div class="log-label mt-md">Where?</div>
+        <div class="chip-grid" id="painLoc">
+          ${['cramps','lower back','thighs','pelvis','head','breasts','whole body'].map(l=>`
+            <div class="chip ${(existing.pain?.loc||[]).includes(l)?'selected':''}" data-v="${l}">${l}</div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="log-label" style="margin-bottom:6px">Symptoms</div>
+        <div class="text-xs text-muted" style="margin-bottom:12px">Tap a group to open it. Tap any that apply.</div>
+        <div id="symptomGroups">
+          ${SymptomEngine.SYMPTOM_GROUPS.map((g, i) => {
+            const selectedInGroup = g.items.filter(s => (existing.symptoms||[]).includes(s)).length;
+            const startOpen = selectedInGroup > 0 || i === 0; // open first group + any group with pre-selected items
+            return `
+              <div class="sx-group ${startOpen?'open':''}" data-group="${g.id}">
+                <div class="sx-group-head" onclick="UI.toggleSxGroup('${g.id}')">
+                  <span class="sx-group-ico">${g.icon}</span>
+                  <span class="sx-group-label">${g.label}</span>
+                  <span class="sx-group-count">${selectedInGroup > 0 ? selectedInGroup : ''}</span>
+                  <span class="sx-group-chev">▾</span>
+                </div>
+                <div class="sx-group-body">
+                  <div class="chip-grid sx-grid" data-group="${g.id}">
+                    ${g.items.map(s=>`
+                      <div class="chip ${(existing.symptoms||[]).includes(s)?'selected':''}" data-v="${s}">${s}</div>
+                    `).join('')}
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="log-label">Mood</div>
+        <div class="mood-row" id="moodRow">
+          ${SymptomEngine.MOOD_OPTS.map(m=>`
+            <div class="mood-btn ${existing.mood===m.v?'selected':''}" data-v="${m.v}" title="${m.l}">${m.e}</div>
+          `).join('')}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="log-label">Lifestyle (optional)</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div class="text-xs text-muted" style="margin-bottom:6px">Sleep (hrs)</div>
+            <input type="number" class="text-input" id="sleepInput" placeholder="—" value="${existing.sleep ?? ''}" min="0" max="24" step="0.5">
+          </div>
+          <div>
+            <div class="text-xs text-muted" style="margin-bottom:6px">Stress (1–10)</div>
+            <input type="number" class="text-input" id="stressInput" placeholder="—" value="${existing.stress ?? ''}" min="1" max="10" step="1">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="log-label">Notes</div>
+        <textarea class="text-input" id="notesInput" rows="3" placeholder="Anything — today's weirdness, what helped, what didn't...">${existing.notes || ''}</textarea>
+      </div>
+
+      <button class="btn btn-primary btn-full btn-lg" onclick="UI.saveLog()">Save today's log</button>
+
+      <div class="section mt-md" style="margin-top:30px">
+        <div class="section-title">Recent logs <span class="sub">last 7 days</span></div>
+        ${this.renderRecentLogs()}
+      </div>
+    `;
+
+    // Bind slider
+    const slider = document.getElementById('painSlider');
+    slider?.addEventListener('input', e=>{
+      document.getElementById('painCurrent').textContent = e.target.value;
+      document.getElementById('painCurrentLabel').textContent = UI.painLabel(+e.target.value);
+    });
+    // Bind chips — both grouped symptoms and pain-location chips
+    document.querySelectorAll('.sx-grid .chip, #painLoc .chip').forEach(c=>{
+      c.addEventListener('click', (e)=>{
+        e.stopPropagation(); // don't bubble to group-head and collapse the group
+        c.classList.toggle('selected');
+        // Update the group count badge
+        const group = c.closest('.sx-group');
+        if(group){
+          const count = group.querySelectorAll('.chip.selected').length;
+          const badge = group.querySelector('.sx-group-count');
+          if(badge) badge.textContent = count > 0 ? count : '';
+        }
+      });
+    });
+    document.querySelectorAll('#moodRow .mood-btn').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        document.querySelectorAll('#moodRow .mood-btn').forEach(x=>x.classList.remove('selected'));
+        b.classList.add('selected');
+      });
+    });
+  },
+  painLabel(v){
+    if(v==0) return 'No pain';
+    if(v<=2) return 'Mild';
+    if(v<=4) return 'Moderate';
+    if(v<=6) return 'Significant';
+    if(v<=8) return 'Severe';
+    return 'Unbearable';
+  },
+  selectFlow(v){
+    const today = U.todayISO();
+    document.querySelectorAll('#flowSelector .flow-opt').forEach(o=>{
+      o.classList.toggle('selected', +o.dataset.v===v);
+    });
+    if(v===0){ UI.toast('Logged as no flow today'); return; }
+    Store.logFlow(today, v);
+    UI.toast('Flow logged');
+  },
+  renderRecentLogs(){
+    const last = Store.logs.slice(-7).reverse();
+    if(!last.length) return `<div class="empty-state"><div class="em-icon">🌱</div>Nothing logged yet.<br>Start today — even one tap counts.</div>`;
+    return last.map(l=>`
+      <div class="log-entry">
+        <div class="log-entry-date">${U.fmtLong(l.date)}</div>
+        <div>${[
+          l.pain?.level ? `Pain ${l.pain.level}/10` : null,
+          l.mood ? `Mood: ${SymptomEngine.MOOD_OPTS.find(m=>m.v===l.mood)?.e||''}` : null,
+          l.sleep ? `${l.sleep}h sleep` : null,
+          l.stress ? `Stress ${l.stress}/10` : null
+        ].filter(Boolean).join(' · ') || '—'}</div>
+        ${l.symptoms?.length ? `<div class="log-entry-tags">${l.symptoms.slice(0,5).map(s=>`<span class="chip chip-sm">${s}</span>`).join('')}${l.symptoms.length>5?`<span class="chip chip-sm">+${l.symptoms.length-5}</span>`:''}</div>`:''}
+        ${l.notes ? `<div class="text-xs text-muted" style="margin-top:6px;font-style:italic">"${l.notes.slice(0,120)}${l.notes.length>120?'…':''}"</div>`:''}
+      </div>
+    `).join('');
+  },
+  saveLog(){
+    const symptoms = [...document.querySelectorAll('.sx-grid .chip.selected')].map(c=>c.dataset.v);
+    const painLevel = +document.getElementById('painSlider').value;
+    const painLoc = [...document.querySelectorAll('#painLoc .chip.selected')].map(c=>c.dataset.v);
+    const moodEl = document.querySelector('#moodRow .mood-btn.selected');
+    const mood = moodEl?.dataset.v;
+    const sleep = +document.getElementById('sleepInput').value || null;
+    const stress = +document.getElementById('stressInput').value || null;
+    const notes = document.getElementById('notesInput').value.trim();
+
+    Store.addLog({
+      date: U.todayISO(),
+      symptoms,
+      pain: painLevel>0 ? {level:painLevel, loc:painLoc} : null,
+      mood,
+      sleep,
+      stress,
+      notes
+    });
+    // Pain ≥7 gets the care intercept; otherwise a rotating caring confirmation
+    if(painLevel >= 7) UI.toast(Affections.painHighIntercept, 4500);
+    else UI.toast(Affections.pickLogConfirmation());
+    setTimeout(()=>UI.switchTo('home'), 600);
+  },
+
+  /* ---------- QUICK ACTIONS ---------- */
+  quickLogPeriodStart(){
+    UI.modal(`
+      <div class="modal-handle"></div>
+      <div class="modal-title">Log period start</div>
+      <div class="modal-sub">First day of actual bleeding (not spotting)</div>
+      <div class="log-section">
+        <div class="log-label">Start date</div>
+        <input type="date" class="date-input" id="periodStartDate" value="${U.todayISO()}" max="${U.todayISO()}">
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="UI.confirmPeriodStart()">Log it</button>
+    `);
+  },
+  confirmPeriodStart(){
+    const date = document.getElementById('periodStartDate').value;
+    if(!date) return;
+    Store.addPeriod(date);
+    UI.closeModal();
+    // If she just logged today as start of a new cycle — warm greeting
+    if(date === U.todayISO()) UI.toast(Affections.newCycleGreeting, 4500);
+    else UI.toast(Affections.pickLogConfirmation());
+    UI.render(UI.current);
+  },
+  quickEndPeriod(){
+    const active = Store.getActivePeriod();
+    if(!active) return;
+    UI.modal(`
+      <div class="modal-handle"></div>
+      <div class="modal-title">Period ended?</div>
+      <div class="modal-sub">Last day with any bleeding (even spotting)</div>
+      <div class="log-section">
+        <div class="log-label">End date</div>
+        <input type="date" class="date-input" id="periodEndDate" value="${U.todayISO()}" max="${U.todayISO()}" min="${active.start}">
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="UI.confirmPeriodEnd()">Mark ended</button>
+    `);
+  },
+  confirmPeriodEnd(){
+    const active = Store.getActivePeriod();
+    const date = document.getElementById('periodEndDate').value;
+    if(!date||!active) return;
+    Store.endPeriod(active.id, date);
+    UI.closeModal();
+    UI.toast('Period closed');
+    UI.render(UI.current);
+  },
+  showQuickMood(){
+    UI.modal(`
+      <div class="modal-handle"></div>
+      <div class="modal-title">How are you feeling?</div>
+      <div class="modal-sub">One tap — saves instantly</div>
+      <div class="mood-row" style="margin:20px 0">
+        ${SymptomEngine.MOOD_OPTS.map(m=>`
+          <div class="mood-btn" onclick="UI.quickMood('${m.v}')" title="${m.l}">${m.e}</div>
+        `).join('')}
+      </div>
+    `);
+  },
+  quickMood(v){
+    Store.addLog({mood: v});
+    UI.closeModal();
+    UI.toast(Affections.pickLogConfirmation());
+  },
+  showQuickNote(){
+    UI.modal(`
+      <div class="modal-handle"></div>
+      <div class="modal-title">Free note</div>
+      <div class="modal-sub">Anything — attaches to today</div>
+      <textarea class="text-input" id="quickNoteInput" rows="5" placeholder="Whatever's on your mind..." style="margin-bottom:14px"></textarea>
+      <button class="btn btn-primary btn-full" onclick="UI.saveQuickNote()">Save</button>
+    `);
+  },
+  saveQuickNote(){
+    const v = document.getElementById('quickNoteInput').value.trim();
+    if(!v) return;
+    Store.addLog({notes: v});
+    UI.closeModal();
+    UI.toast('Note saved');
+  },
+
+  /* ---------- INSIGHTS ---------- */
+  renderInsights(){
+    const host = document.getElementById('insights-screen');
+    const stats = CycleEngine.getStats();
+    const patterns = InsightEngine.getPatterns();
+    const pmdd = SymptomEngine.screenPMDD();
+
+    const regColors = {very_regular:'var(--sage)', normal:'var(--sage)', irregular:'var(--amber)', very_irregular:'var(--coral)', insufficient:'var(--text-3)'};
+    const regLabels = {very_regular:'Very regular', normal:'Normally variable', irregular:'Irregular', very_irregular:'Very irregular', insufficient:'Log more cycles'};
+    // Real regularity math — no cosmetic map.
+    // FIGO: range ≤9d = normal. CV is coefficient of variation = SD/mean.
+    // We display a "stability" score: 100% at CV=0 (perfectly regular),
+    // dropping linearly; clamped at 5% floor so the bar never looks empty.
+    // Below ~3 cycles, show an "insufficient data" minimal fill so it's visible but honest.
+    let regPct = 5, regSubtext = '';
+    if(stats.n >= 3){
+      // Stability score: 100 - (CV as % × 4), clamped to [5, 98]
+      const cvPct = (stats.cv || 0) * 100;
+      regPct = Math.max(5, Math.min(98, Math.round(100 - cvPct * 4)));
+      regSubtext = `Coefficient of variation ${cvPct.toFixed(1)}% · lower = steadier`;
+    } else if(stats.n >= 1){
+      regPct = 15;
+      regSubtext = `${stats.n} cycle${stats.n!==1?'s':''} logged — need ≥3 for a real score`;
+    } else {
+      regSubtext = 'No cycles logged yet';
+    }
+
+    host.innerHTML = `
+      <div class="section">
+        <h2 style="margin-bottom:16px">Your patterns</h2>
+
+        <div class="card elevated">
+          <div class="regularity-gauge">
+            <div class="gauge-value" style="color:${regColors[stats.regularity]}">${regLabels[stats.regularity]}</div>
+            <div class="gauge-label">${stats.n>=3 ? `Range ${stats.range}d · stability ${regPct}%` : `${stats.n} cycle${stats.n!==1?'s':''} logged`}</div>
+            <div class="gauge-bar">
+              <div class="gauge-bar-fill" style="width:${regPct}%;background:${regColors[stats.regularity]}"></div>
+            </div>
+          </div>
+          <div class="text-xs text-muted text-center">${regSubtext || 'FIGO 2018: cycle range ≤9 days = normal'}</div>
+        </div>
+
+        ${stats.n>=2 ? `
+          <div class="card">
+            <div class="card-title">Cycle lengths</div>
+            <div class="bar-chart" style="margin-bottom:20px">
+              ${stats.recent.map(l=>{
+                const max = Math.max(...stats.recent, 35);
+                const min = Math.min(...stats.recent, 21);
+                const h = Math.max(10, (l / max) * 100);
+                return `<div class="bar" style="height:${h}%"><span class="bar-val">${l}</span></div>`;
+              }).join('')}
+            </div>
+            <div class="stat-row">
+              <div class="stat-card">
+                <div class="stat-val">${stats.min}</div>
+                <div class="stat-label">Shortest</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-val">${stats.max}</div>
+                <div class="stat-label">Longest</div>
+              </div>
+            </div>
+          </div>
+        ` : ''}
+
+        ${patterns.length ? `
+          <div class="card">
+            <div class="card-title">What I've learned</div>
+            ${patterns.map(p=>`
+              <div class="pattern-item">
+                <strong>${p.title}</strong><br>${p.text}
+              </div>
+            `).join('')}
+          </div>
+        ` : `
+          <div class="card">
+            <div class="empty-state">
+              <div class="em-icon">🌙</div>
+              Your personal patterns will show up here as you log.<br>
+              <span class="text-xs">Need ~3 cycles + 10+ symptom logs.</span>
+            </div>
+          </div>
+        `}
+
+        ${(()=>{
+          const allFlags = RedFlagEngine.scan();
+          if(!allFlags.length){
+            return `
+              <div class="card">
+                <div class="card-title">Things I'm watching</div>
+                <div class="empty-state">
+                  <div class="em-icon">🌸</div>
+                  Nothing on my radar right now. I'll let you know if that changes — you just keep logging and I'll keep watching.
+                  <div class="text-xs" style="margin-top:10px;color:var(--gold);font-family:var(--serif);font-style:italic">— Rutik</div>
+                </div>
+              </div>
+            `;
+          }
+          // Sort by severity: urgent > alert > review > watch
+          const order = {urgent:0, alert:1, review:2, watch:3};
+          const sorted = [...allFlags].sort((a,b)=>(order[a.level]??9)-(order[b.level]??9));
+          return `
+            <div class="section" style="padding:0">
+              <div class="section-title">Things I'm watching <span class="sub">${sorted.length}</span></div>
+              ${sorted.map(f => UI.renderFlagCard(f)).join('')}
+            </div>
+          `;
+        })()}
+
+        ${(()=>{
+          // Engine gating: what flags are dormant because of missing data?
+          const gates = [];
+          const intake = Store.intake || {};
+          const cond = Store.profile?.conditions || [];
+          const ic = Intake.completeness();
+
+          // Sexual health section → enables PID/STI screening, postcoital-bleed
+          if(!intake.sexuallyActive){
+            gates.push({
+              label: 'PID & STI screening',
+              why: 'Add the Intimate & gynae section in your detailed profile.',
+              action: 'openIntake'
+            });
+          }
+          // Family history → sharpens PCOS, endo, bleeding-disorder priors
+          if(!intake.fhxEndo && !intake.fhxPCOS && !intake.fhxBleedingDis){
+            gates.push({
+              label: 'Family-history-weighted scoring',
+              why: 'Add family history section — it shifts thresholds for endo, PCOS, and bleeding disorders.',
+              action: 'openIntake'
+            });
+          }
+          // Symptom gating — if she hasn't logged any of these, screening is blind
+          const hasDyspareunia = Store.logs.some(l => (l.symptoms||[]).some(s => /dyspareunia/i.test(s)));
+          const hasDyschezia = Store.logs.some(l => (l.symptoms||[]).some(s => /dyschezia/i.test(s)));
+          const hasTempSx = Store.logs.some(l => (l.symptoms||[]).some(s => /cold intolerance|heat intolerance|hair loss/i.test(s)));
+          if(!hasDyspareunia && !hasDyschezia){
+            gates.push({
+              label: 'Endometriosis pattern detection',
+              why: 'If dyspareunia (pain during intimacy) or dyschezia (pain on bowel motion) ever happen, tag them in Log — under the Intimate health group. That\'s what makes endo screening work.',
+              action: 'log'
+            });
+          }
+          if(!hasTempSx && !cond.includes('Hypothyroidism') && !cond.includes('Hyperthyroidism')){
+            gates.push({
+              label: 'Thyroid-pattern flagging',
+              why: 'If you ever feel unusually cold, warm, or notice hair changes, tag them under Temperature & energy. Thyroid screening needs the somatic picture.',
+              action: 'log'
+            });
+          }
+
+          if(!gates.length) return '';
+
+          return `
+            <div class="card" style="border-color:rgba(212,165,116,0.2)">
+              <div class="card-title">More I could catch</div>
+              <div class="text-xs text-muted" style="margin-bottom:10px;line-height:1.55">
+                A few screenings need a bit more data before I can run them fairly. Your call on how much to fill in — all of it's optional.
+                <div style="margin-top:6px;color:var(--gold);font-family:var(--serif);font-style:italic">— Rutik</div>
+              </div>
+              ${gates.slice(0,4).map(g=>`
+                <div class="pattern-item" style="cursor:pointer" onclick="${g.action==='openIntake' ? 'UI.openIntake()' : "UI.switchTo('log')"}">
+                  <strong>${g.label}</strong><br>
+                  <span style="font-size:0.85rem;color:var(--text-2)">${g.why}</span>
+                </div>
+              `).join('')}
+              ${ic.pct < 100 ? `
+                <button class="btn btn-secondary btn-full" style="margin-top:10px" onclick="UI.openIntake()">
+                  Open detailed profile · ${ic.pct}% done
+                </button>
+              ` : ''}
+            </div>
+          `;
+        })()}
+
+        ${pmdd?.sufficient && !RedFlagEngine.scan().some(f=>f.id==='pmdd') ? `
+          <div class="card">
+            <div class="card-title">PMS / PMDD screening</div>
+            ${pmdd.pmsLikely ? `
+              <div class="pattern-item">
+                <strong>PMS pattern noted</strong><br>
+                Your symptoms cluster in luteal phase and resolve with menses. Magnesium glycinate 200–400mg at bedtime, calcium 1000mg, vit B6 up to 100mg — all have evidence. Exercise and sleep hygiene help too.
+                <div class="text-xs" style="margin-top:8px;color:var(--gold);font-family:var(--serif);font-style:italic">— Rutik</div>
+              </div>
+            ` : `
+              <div class="pattern-item">No significant luteal clustering so far. Clean pattern.</div>
+            `}
+          </div>
+        ` : !pmdd?.sufficient ? `
+          <div class="card">
+            <div class="card-title">PMS / PMDD screening</div>
+            <div class="empty-state">
+              Log symptoms across 2+ cycles to enable this screening.
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  },
+
+  /* ---------- CALENDAR ---------- */
+  calState: {year: new Date().getFullYear(), month: new Date().getMonth()},
+  renderCalendar(){
+    const host = document.getElementById('calendar-screen');
+    const {year, month} = this.calState;
+    const first = new Date(year, month, 1);
+    const firstDay = first.getDay();
+    const daysInMonth = new Date(year, month+1, 0).getDate();
+    const prevMonthDays = new Date(year, month, 0).getDate();
+    const monthName = first.toLocaleDateString('en-US',{month:'long', year:'numeric'});
+
+    // Build events map
+    const events = {};
+    Store.periods.forEach(p=>{
+      if(!p || !p.start) return;
+      const end = p.end || U.addDays(p.start, 5);
+      let d = p.start;
+      let guard = 0;
+      while(d <= end && guard++ < 60){
+        events[d] = 'period';
+        const next = U.addDays(d,1);
+        if(next === d) break; // safety — should never happen after U fix, but never freeze
+        d = next;
+      }
+    });
+    // Predicted next
+    const pred = CycleEngine.predictNext();
+    const ov = CycleEngine.predictOvulation();
+    const stats = CycleEngine.getStats();
+    if(pred && pred.earliest && pred.latest){
+      let d = pred.earliest;
+      let guard = 0;
+      while(d <= pred.latest && guard++ < 60){
+        if(!events[d]) events[d] = 'period-pred';
+        const next = U.addDays(d,1);
+        if(next === d) break;
+        d = next;
+      }
+    }
+    if(ov && ov.fertileStart && ov.fertileEnd){
+      let d = ov.fertileStart;
+      let guard = 0;
+      while(d <= ov.fertileEnd && guard++ < 30){
+        if(!events[d]) events[d] = 'fertile';
+        const next = U.addDays(d,1);
+        if(next === d) break;
+        d = next;
+      }
+      if(!events[ov.ovulation] || events[ov.ovulation]==='fertile') events[ov.ovulation] = 'ovulation';
+    }
+
+    const loggedDates = new Set(Store.logs.map(l=>l.date));
+    const today = U.todayISO();
+
+    // Build grid
+    const cells = [];
+    // Leading days from prev month
+    for(let i=firstDay-1; i>=0; i--){
+      const day = prevMonthDays - i;
+      const dateObj = new Date(year, month-1, day);
+      const iso = U.toISO(dateObj);
+      cells.push(this._renderCell(day, iso, events[iso], loggedDates.has(iso), iso===today, true));
+    }
+    // Current month
+    for(let d=1; d<=daysInMonth; d++){
+      const dateObj = new Date(year, month, d);
+      const iso = U.toISO(dateObj);
+      cells.push(this._renderCell(d, iso, events[iso], loggedDates.has(iso), iso===today, false));
+    }
+    // Trailing days
+    const remaining = 42 - cells.length;
+    for(let d=1; d<=remaining; d++){
+      const dateObj = new Date(year, month+1, d);
+      const iso = U.toISO(dateObj);
+      cells.push(this._renderCell(d, iso, events[iso], loggedDates.has(iso), iso===today, true));
+    }
+
+    host.innerHTML = `
+      <div class="cal-header">
+        <div class="cal-month">${monthName}</div>
+        <div class="cal-nav">
+          <button onclick="UI.calShift(-1)">‹</button>
+          <button onclick="UI.calToday()">•</button>
+          <button onclick="UI.calShift(1)">›</button>
+        </div>
+      </div>
+      <div class="cal-weekdays">
+        ${['S','M','T','W','T','F','S'].map(d=>`<div class="cal-wd">${d}</div>`).join('')}
+      </div>
+      <div class="cal-grid">${cells.join('')}</div>
+      <div class="cal-legend">
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:linear-gradient(135deg,var(--flow-med),var(--flow-heavy))"></div>Period</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:repeating-linear-gradient(45deg,rgba(212,116,143,0.4),rgba(212,116,143,0.4) 2px,transparent 2px,transparent 5px)"></div>Predicted</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:rgba(138,181,131,0.25)"></div>Fertile window</div>
+        <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--gold)"></div>Logged day</div>
+      </div>
+
+      ${pred ? `
+        <div class="card" style="margin-top:20px">
+          <div class="card-title">Next period forecast</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+            <div class="stat-card">
+              <div class="stat-val">${U.fmt(pred.predicted)}</div>
+              <div class="stat-label">Most likely</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val">±${pred.ciDays}d</div>
+              <div class="stat-label">Variation</div>
+            </div>
+          </div>
+          <div class="text-xs text-muted">Window: ${U.fmt(pred.earliest)} – ${U.fmt(pred.latest)}. ${stats.regularity==='very_regular'||stats.regularity==='normal'?'High confidence.':stats.regularity==='irregular'?'Moderate confidence — cycles vary.':'Low confidence — cycles irregular.'}</div>
+          ${ov?`<div class="text-xs text-muted" style="margin-top:6px">Ovulation est: ${U.fmt(ov.ovulation)} · fertile window ${U.fmt(ov.fertileStart)} – ${U.fmt(ov.fertileEnd)}</div>`:''}
+        </div>
+      ` : ''}
+    `;
+  },
+  _renderCell(day, iso, event, logged, today, otherMonth){
+    const cls = ['cal-day'];
+    if(otherMonth) cls.push('other-month');
+    if(today) cls.push('today');
+    if(event) cls.push(event);
+    if(logged) cls.push('logged');
+    return `<div class="${cls.join(' ')}" onclick="UI.showDateDetail('${iso}')">${day}</div>`;
+  },
+  calShift(n){
+    this.calState.month += n;
+    if(this.calState.month<0){ this.calState.month=11; this.calState.year--; }
+    if(this.calState.month>11){ this.calState.month=0; this.calState.year++; }
+    this.renderCalendar();
+  },
+  calToday(){
+    const d = new Date();
+    this.calState = {year:d.getFullYear(), month:d.getMonth()};
+    this.renderCalendar();
+  },
+  showDateDetail(iso){
+    const log = Store.getLog(iso);
+    const period = Store.periods.find(p=>iso>=p.start && iso<=(p.end||U.addDays(p.start,5)));
+    const phase = SymptomEngine._phaseForDate(iso);
+    const flow = period?.flow?.find(f=>f.date===iso);
+
+    UI.modal(`
+      <div class="modal-handle"></div>
+      <div class="modal-title">${U.fmtLong(iso)}</div>
+      <div class="modal-sub">Cycle phase: ${phase}${period?' · period day '+(U.daysBetween(period.start,iso)+1):''}</div>
+      ${flow ? `<div class="pattern-item"><strong>Flow:</strong> ${['None','Spotting','Light','Medium','Heavy','Flooding'][flow.volume]||'—'}</div>`:''}
+      ${log ? `
+        ${log.pain?.level ? `<div class="pattern-item"><strong>Pain:</strong> ${log.pain.level}/10${log.pain.loc?.length?` (${log.pain.loc.join(', ')})`:''}</div>`:''}
+        ${log.mood ? `<div class="pattern-item"><strong>Mood:</strong> ${SymptomEngine.MOOD_OPTS.find(m=>m.v===log.mood)?.e} ${SymptomEngine.MOOD_OPTS.find(m=>m.v===log.mood)?.l||''}</div>`:''}
+        ${log.symptoms?.length ? `<div class="pattern-item"><strong>Symptoms:</strong><br><div class="chip-grid" style="margin-top:6px">${log.symptoms.map(s=>`<span class="chip chip-sm">${s}</span>`).join('')}</div></div>`:''}
+        ${log.sleep ? `<div class="pattern-item"><strong>Sleep:</strong> ${log.sleep}h</div>`:''}
+        ${log.stress ? `<div class="pattern-item"><strong>Stress:</strong> ${log.stress}/10</div>`:''}
+        ${log.notes ? `<div class="pattern-item" style="font-style:italic">"${log.notes}"</div>`:''}
+      ` : `<div class="empty-state">No log for this day</div>`}
+      ${iso === U.todayISO() ? `<button class="btn btn-primary btn-full" style="margin-top:16px" onclick="UI.closeModal();UI.switchTo('log')">Log today</button>`:''}
+    `);
+  },
+
+  /* ---------- PROFILE ---------- */
+  renderProfile(){
+    const host = document.getElementById('profile-screen');
+    const p = Store.profile || {};
+    const s = Store.settings;
+
+    host.innerHTML = `
+      <div class="section">
+        <h2 style="margin-bottom:6px">Vaishnavi</h2>
+        <div class="text-muted text-sm" style="margin-bottom:18px">With Bloom since ${U.fmt(p.createdAt)}</div>
+
+        <div class="card">
+          <div class="profile-row">
+            <div class="label">Typical cycle length</div>
+            <div class="value">${p.cycleLen || '—'} days</div>
+          </div>
+          <div class="profile-row">
+            <div class="label">Periods logged</div>
+            <div class="value">${Store.periods.length}</div>
+          </div>
+          <div class="profile-row">
+            <div class="label">Symptom logs</div>
+            <div class="value">${Store.logs.length}</div>
+          </div>
+          <div class="profile-row">
+            <div class="label">Conditions flagged</div>
+            <div class="value">${p.conditions?.length ? p.conditions.join(', ') : 'none'}</div>
+          </div>
+        </div>
+
+        <div class="card" onclick="UI.openIntake()" style="cursor:pointer">
+          <div class="card-title">Detailed profile</div>
+          <div class="profile-row" style="padding-top:4px">
+            <div class="label" style="flex:1">
+              ${(()=>{
+                const c = Intake.completeness();
+                if(c.filled === 0) return 'Help me get to know you better';
+                if(c.pct < 100) return `${c.pct}% complete — add more anytime`;
+                return 'Fully set up ✓';
+              })()}
+            </div>
+            <div class="arrow">›</div>
+          </div>
+          <div class="intake-progress-bar" style="margin-top:10px">
+            <div class="intake-progress-fill" style="width:${Intake.completeness().pct}%"></div>
+          </div>
+          <div class="text-xs text-muted" style="margin-top:10px;line-height:1.55">
+            The more I know — conditions, family history, meds — the more specific my flags can be. Everything optional. Stays on your device.
+            <div style="margin-top:6px;color:var(--gold);font-family:var(--serif);font-style:italic">— Rutik</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Settings</div>
+          <div class="profile-row" onclick="UI.toggleLoveNotes()" style="cursor:pointer">
+            <div class="label">Love notes from Rutik</div>
+            <div class="switch ${s.loveNotesOn?'on':''}" id="loveSwitch"></div>
+          </div>
+          <div class="profile-row" style="cursor:pointer" onclick="UI.editCycleLen()">
+            <div class="label">Update cycle length</div>
+            <div class="arrow">›</div>
+          </div>
+        </div>
+
+        <div class="card" id="installBtn" style="display:${window._bloomInstallPrompt ? 'block' : 'none'}">
+          <div class="card-title">Install Bloom</div>
+          <div class="action-link" onclick="UI.triggerInstall()">
+            <span>Add to home screen</span>
+            <span class="arrow">↓</span>
+          </div>
+          <div class="text-sm" style="color:var(--text-dim);margin-top:4px">
+            Installs like a native app. Works offline. On iPhone: tap Share → Add to Home Screen.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Data</div>
+          <div class="action-link" onclick="UI.exportData()">
+            <span>Export for doctor visit</span>
+            <span class="arrow">↓</span>
+          </div>
+          <div class="action-link" onclick="UI.exportJSON()">
+            <span>Backup (JSON)</span>
+            <span class="arrow">↓</span>
+          </div>
+          <div class="action-link" onclick="UI.importData()">
+            <span>Restore from backup</span>
+            <span class="arrow">↑</span>
+          </div>
+          <div class="action-link" onclick="UI.confirmReset()" style="color:var(--coral)">
+            <span>Reset all data</span>
+            <span class="arrow">!</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">About</div>
+          <div class="text-sm" style="color:var(--text-2);line-height:1.6">
+            Bloom v1.0. Built for Vaishnavi with the intention that no cycle day should feel like something she has to figure out alone.<br><br>
+            All data lives on this device only — nothing leaves unless she exports it.<br><br>
+            EBM references: FIGO 2018 menstrual classifications, ACOG Practice Bulletins, NICE NG88 (HMB), Rotterdam criteria (PCOS), DSM-5 (PMDD), Cochrane reviews.<br><br>
+            <em style="color:var(--gold);font-family:var(--serif);font-size:1.05rem">Made by Rutik. Always.</em>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+  triggerInstall(){
+    const p = window._bloomInstallPrompt;
+    if(!p){
+      // iOS Safari and some contexts don't fire beforeinstallprompt — guide manually
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      UI.modal(`
+        <div class="modal-handle"></div>
+        <div class="modal-title">Add Bloom to home screen</div>
+        <div class="modal-sub" style="text-align:left;line-height:1.7">
+          ${isIOS
+            ? `<strong>iPhone/iPad (Safari):</strong><br>
+               1. Tap the <strong>Share</strong> icon (square with arrow) at the bottom<br>
+               2. Scroll down → tap <strong>Add to Home Screen</strong><br>
+               3. Tap <strong>Add</strong> in the top right<br><br>
+               <em style="color:var(--text-dim);font-size:13px">Note: Bloom must be opened in Safari (not Chrome) for this option to appear on iOS.</em>`
+            : `<strong>Android (Chrome):</strong><br>
+               1. Tap the menu (⋮) in the top right<br>
+               2. Tap <strong>Install app</strong> or <strong>Add to Home screen</strong><br>
+               3. Confirm<br><br>
+               <em style="color:var(--text-dim);font-size:13px">If you don't see "Install app", the site may need to be opened a couple of times first for Chrome to offer it.</em>`}
+        </div>
+        <button class="btn btn-primary btn-full" onclick="UI.closeModal()">Got it</button>
+      `);
+      return;
+    }
+    p.prompt();
+    p.userChoice.then((choice)=>{
+      if(choice.outcome === 'accepted'){
+        if(typeof U !== 'undefined' && U.toast) U.toast('Installing…');
+      }
+      window._bloomInstallPrompt = null;
+      const btn = document.getElementById('installBtn');
+      if(btn) btn.style.display = 'none';
+    });
+  },
+  openIntake(){
+    // Inject the intake view as a full-screen overlay (reuses modal overlay layer)
+    let overlay = document.getElementById('intakeOverlay');
+    if(!overlay){
+      overlay = document.createElement('div');
+      overlay.id = 'intakeOverlay';
+      overlay.className = 'intake-overlay';
+      overlay.innerHTML = `
+        <div class="intake-topbar">
+          <button class="intake-back" onclick="UI.closeIntake()">‹ Back</button>
+          <div class="intake-title">Detailed profile</div>
+          <div style="width:48px"></div>
+        </div>
+        <div class="intake-body" id="intakeBody"></div>
+      `;
+      document.body.appendChild(overlay);
+    }
+    Intake.renderMain(document.getElementById('intakeBody'));
+    requestAnimationFrame(()=> overlay.classList.add('active'));
+  },
+  closeIntake(){
+    const overlay = document.getElementById('intakeOverlay');
+    if(overlay) overlay.classList.remove('active');
+    // Re-render profile so the progress card reflects updates
+    if(UI.current === 'profile') UI.render('profile');
+  },
+  toggleLoveNotes(){
+    Store.updateSettings({loveNotesOn: !Store.settings.loveNotesOn});
+    document.getElementById('loveSwitch').classList.toggle('on');
+  },
+  editCycleLen(){
+    const cur = Store.profile?.cycleLen || 28;
+    UI.modal(`
+      <div class="modal-handle"></div>
+      <div class="modal-title">Cycle length</div>
+      <div class="modal-sub">This is only a starting estimate — the app uses your actual logged cycles once you have a few.</div>
+      <input type="number" class="ob-input" id="cycleLenInput" value="${cur}" min="15" max="90">
+      <button class="btn btn-primary btn-full" onclick="UI.saveCycleLen()">Save</button>
+    `);
+  },
+  saveCycleLen(){
+    const v = +document.getElementById('cycleLenInput').value;
+    if(!v||v<15||v>90) return;
+    Store.profile = {...Store.profile, cycleLen: v};
+    UI.closeModal();
+    UI.toast('Updated');
+    UI.render(UI.current);
+  },
+  editConditions(){
+    const cur = Store.profile?.conditions || [];
+    const opts = ['pcos','thyroid','endometriosis','fibroids','anemia','pmdd'];
+    UI.modal(`
+      <div class="modal-handle"></div>
+      <div class="modal-title">Diagnosed conditions</div>
+      <div class="modal-sub">Tap all that apply</div>
+      <div class="chip-grid" id="condGrid" style="margin:16px 0">
+        ${opts.map(o=>`<div class="chip ${cur.includes(o)?'selected':''}" data-v="${o}">${o.toUpperCase()}</div>`).join('')}
+      </div>
+      <button class="btn btn-primary btn-full" onclick="UI.saveConditions()">Save</button>
+    `);
+    document.querySelectorAll('#condGrid .chip').forEach(c=>c.addEventListener('click', ()=>c.classList.toggle('selected')));
+  },
+  saveConditions(){
+    const chosen = [...document.querySelectorAll('#condGrid .chip.selected')].map(c=>c.dataset.v);
+    Store.profile = {...Store.profile, conditions: chosen};
+    UI.closeModal();
+    UI.toast('Updated');
+    UI.render(UI.current);
+  },
+  exportData(){
+    const stats = CycleEngine.getStats();
+    const flags = RedFlagEngine.scan();
+    const patterns = InsightEngine.getPatterns();
+    const sig = SymptomEngine.getPersonalSignature();
+    const pmdd = SymptomEngine.screenPMDD();
+
+    const lines = [
+      `BLOOM — CYCLE REPORT`,
+      `Generated ${U.fmtLong(U.todayISO())}`,
+      ``,
+      `== PROFILE ==`,
+      `Typical cycle length (reported): ${Store.profile?.cycleLen}d`,
+      `Conditions: ${Store.profile?.conditions?.join(', ') || 'none'}`,
+      ...(Store.intake ? (()=>{
+        const i = Store.intake;
+        const lines = [];
+        if(i.dob) lines.push(`DOB: ${i.dob}`);
+        if(i.heightCm && i.weightKg){
+          const bmi = (i.weightKg / ((i.heightCm/100)**2)).toFixed(1);
+          lines.push(`Height/Weight: ${i.heightCm}cm / ${i.weightKg}kg (BMI ${bmi})`);
+        }
+        if(i.menarcheAge) lines.push(`Menarche age: ${i.menarcheAge}`);
+        if(i.gravida !== undefined || i.para !== undefined) lines.push(`OB: G${i.gravida||0}P${i.para||0}${i.miscarriages?` (miscarriages ${i.miscarriages})`:''}`);
+        if(i.sexuallyActive) lines.push(`Sexually active: ${i.sexuallyActive}`);
+        if(i.contraception) lines.push(`Contraception: ${i.contraception}`);
+        if(i.dyspareunia && i.dyspareunia !== 'no') lines.push(`Dyspareunia: ${i.dyspareunia}`);
+        if(i.pastSurgeries?.length) lines.push(`Past procedures: ${i.pastSurgeries.join(', ')}`);
+        if(i.lastPap) lines.push(`Last Pap: ${i.lastPap}`);
+        if(i.currentMeds?.length) lines.push(`Current meds: ${i.currentMeds.join(', ')}`);
+        if(i.knownAllergies) lines.push(`Allergies: ${i.knownAllergies}`);
+        const fhx = [];
+        if(i.fhxEndo === 'yes') fhx.push('endometriosis');
+        if(i.fhxPCOS === 'yes') fhx.push('PCOS');
+        if(i.fhxFibroids === 'yes') fhx.push('fibroids');
+        if(i.fhxBleedingDis === 'yes') fhx.push('bleeding disorder');
+        if(i.fhxEarlyMenopause === 'yes') fhx.push('early menopause');
+        if(i.fhxThyroid === 'yes') fhx.push('thyroid');
+        if(i.fhxGynCancer?.length) fhx.push(`cancers: ${i.fhxGynCancer.join('/')}`);
+        if(fhx.length) lines.push(`Family history: ${fhx.join(', ')}`);
+        return lines;
+      })() : []),
+      ``,
+      `== CYCLE STATISTICS ==`,
+      `Cycles tracked: ${stats.n+1}`,
+      ...(stats.n >= 1 ? [
+        `Recent cycle lengths: ${stats.recent.join(', ')} days`,
+        `Mean: ${stats.recentMean.toFixed(1)}d, SD: ${stats.sd.toFixed(1)}d, range: ${stats.range}d`,
+        `Regularity: ${stats.regularity}`,
+      ] : [`Need more cycles for statistics`]),
+      ``,
+      `== PERIODS ==`,
+      ...Store.periods.slice(-12).map(p=>{
+        const dur = p.end ? U.daysBetween(p.start,p.end)+1 : '?';
+        const heavyDays = (p.flow||[]).filter(f=>f.volume>=4).length;
+        return `${p.start} → ${p.end||'(open)'} · ${dur}d · ${heavyDays} heavy day(s)`;
+      }),
+      ``,
+      `== FINDINGS (RedFlagEngine, EBM-based) ==`,
+      ...(flags.length ? flags.flatMap(f => {
+        const c = f.clinical || {};
+        const lines = [
+          `--- [${f.level.toUpperCase()}] ${f.soft?.title || f.id} ---`,
+          c.finding ? `Finding: ${c.finding}` : '',
+          c.criterion ? `Criterion: ${c.criterion}` : '',
+          c.differential?.length ? `Differential:\n  - ${c.differential.join('\n  - ')}` : '',
+          c.workup?.length ? `Suggested workup:\n  - ${c.workup.join('\n  - ')}` : '',
+          c.citations?.length ? `Sources: ${c.citations.join('; ')}` : '',
+          ''
+        ];
+        return lines.filter(Boolean);
+      }) : ['No flags currently.']),
+      ``,
+      `== PMS / PMDD SCREENING ==`,
+      ...(pmdd?.sufficient ? [
+        pmdd.pmddLikely ? 'PMDD pattern: LIKELY (DSM-5 prospective)' :
+        pmdd.pmsLikely ? 'PMS pattern: LIKELY' : 'No significant luteal clustering',
+        `Luteal-specific symptoms: ${pmdd.lutealHits?.join(', ') || 'none'}`
+      ] : ['Insufficient data']),
+      ``,
+      `== PATTERNS ==`,
+      ...(patterns.length ? patterns.map(p=>`${p.title}: ${p.text}`) : ['Learning...']),
+      ``,
+      `== RECENT SYMPTOM LOGS ==`,
+      ...Store.logs.slice(-14).map(l=>{
+        const parts = [l.date];
+        if(l.pain?.level) parts.push(`pain ${l.pain.level}/10`);
+        if(l.symptoms?.length) parts.push(`sx: ${l.symptoms.join('/')}`);
+        if(l.mood) parts.push(`mood: ${l.mood}`);
+        return parts.join(' | ');
+      })
+    ].join('\n');
+
+    this._download('bloom-report-'+U.todayISO()+'.txt', lines, 'text/plain');
+    UI.toast('Report downloaded');
+  },
+  exportJSON(){
+    const data = {
+      profile: Store.profile,
+      periods: Store.periods,
+      logs: Store.logs,
+      settings: Store.settings,
+      intake: Store.intake,
+      meta: Store._cache.meta,
+      exportedAt: new Date().toISOString(),
+      appVersion: 'bloom-1.1'
+    };
+    this._download('bloom-backup-'+U.todayISO()+'.json', JSON.stringify(data,null,2), 'application/json');
+    UI.toast('Backup downloaded');
+  },
+  _download(name, content, type){
+    const blob = new Blob([content], {type});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = name; a.click();
+    URL.revokeObjectURL(url);
+  },
+  importData(){
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = '.json';
+    input.onchange = (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev)=>{
+        try{
+          const data = JSON.parse(ev.target.result);
+          if(!data.profile||!Array.isArray(data.periods)) throw new Error('bad format');
+          if(!confirm('Replace all current data with backup?')) return;
+          Store._cache.profile = data.profile;
+          Store._cache.periods = data.periods;
+          Store._cache.logs = data.logs || [];
+          Store._cache.settings = data.settings || Store._cache.settings;
+          Store._cache.intake = data.intake || null;
+          if(data.meta) Store._cache.meta = data.meta;
+          Store.save('profile');Store.save('periods');Store.save('logs');Store.save('settings');
+          Store.save('intake'); localStorage.setItem(Store.K.meta, JSON.stringify(Store._cache.meta));
+          UI.toast('Restored');
+          UI.render(UI.current);
+        } catch(err){ UI.toast('Bad file'); }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  },
+  confirmReset(){
+    if(!confirm('Wipe all Bloom data on this device? This cannot be undone.')) return;
+    if(!confirm('Really reset? You will lose all logged cycles and symptoms.')) return;
+    localStorage.removeItem(Store.K.profile);
+    localStorage.removeItem(Store.K.periods);
+    localStorage.removeItem(Store.K.logs);
+    localStorage.removeItem(Store.K.settings);
+    localStorage.removeItem(Store.K.intake);
+    localStorage.removeItem(Store.K.meta);
+    localStorage.removeItem('bloom_ui_tab');
+    location.reload();
+  },
+
+  /* ---------- MODAL ---------- */
+  modal(html){
+    document.getElementById('modalBody').innerHTML = html;
+    document.getElementById('modalOverlay').classList.add('active');
+  },
+  closeModal(){
+    document.getElementById('modalOverlay').classList.remove('active');
+  },
+
+  /* ---------- TOAST ---------- */
+  _toastTimer: null,
+  toast(msg, duration){
+    const t = document.getElementById('toast');
+    if(!t) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(()=>t.classList.remove('show'), duration || 2200);
+  }
+};
+
+/* -------------------- Onboarding -------------------- */
+const Onboarding = {
+  step: 0,
+  data: {conditions:[]},
+  next(){
+    if(this.step === 1){
+      const v = document.getElementById('ob-last-period').value;
+      if(!v){ UI.toast('Pick a date'); return; }
+      this.data.lastPeriod = v;
+    }
+    if(this.step === 2){
+      this.data.cycleLen = +document.getElementById('ob-cycle-length').value || 28;
+    }
+    if(this.step === 3){
+      this.data.conditions = [...document.querySelectorAll('#ob-conditions .chip.selected')].map(c=>c.dataset.v);
+    }
+    this.go(this.step + 1);
+  },
+  prev(){ this.go(this.step - 1); },
+  go(n){
+    if(n < 0 || n > 4) return;
+    this.step = n;
+    document.querySelectorAll('.ob-step').forEach(s=>s.classList.remove('active'));
+    document.querySelector(`.ob-step[data-step="${n}"]`).classList.add('active');
+    document.querySelectorAll('.ob-dot').forEach(d=>d.classList.toggle('active', +d.dataset.s===n));
+  },
+  finish(){
+    const profile = {
+      name: 'Vaishnavi',
+      cycleLen: this.data.cycleLen,
+      conditions: this.data.conditions,
+      createdAt: new Date().toISOString()
+    };
+    Store.profile = profile;
+    Store.addPeriod(this.data.lastPeriod);
+    document.getElementById('onboarding').classList.remove('active');
+    document.getElementById('onboarding').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    UI.bindEvents();
+    UI.switchTo('home');
+  },
+  bindConditionChips(){
+    document.querySelectorAll('#ob-conditions .chip').forEach(c=>{
+      c.addEventListener('click', ()=>c.classList.toggle('selected'));
+    });
+  }
+};
+
+/* -------------------- Init -------------------- */
+(function init(){
+  try {
+    Store.init();
+  } catch(e){
+    console.error('[Bloom] Store init failed', e);
+  }
+
+  // Capture PWA install prompt globally so we can trigger it from the profile button
+  window._bloomInstallPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e)=>{
+    e.preventDefault();
+    window._bloomInstallPrompt = e;
+    // Toggle install button visibility if present
+    const btn = document.getElementById('installBtn');
+    if(btn) btn.style.display = 'flex';
+  });
+  window.addEventListener('appinstalled', ()=>{
+    window._bloomInstallPrompt = null;
+    const btn = document.getElementById('installBtn');
+    if(btn) btn.style.display = 'none';
+    if(typeof U !== 'undefined' && U.toast) U.toast('Bloom installed');
+  });
+
+  if(!Store.profile){
+    document.getElementById('onboarding').classList.add('active');
+    document.getElementById('ob-last-period').value = U.todayISO();
+    Onboarding.bindConditionChips();
+  } else {
+    document.getElementById('app').style.display = 'flex';
+    UI.bindEvents();
+    // Restore last open tab if saved
+    let lastTab = 'home';
+    try {
+      const saved = localStorage.getItem('bloom_ui_tab');
+      if(saved && ['home','log','insights','calendar','profile'].includes(saved)) lastTab = saved;
+    } catch(e){}
+    UI.switchTo(lastTab);
+  }
+
+  // Modal close on overlay click
+  const overlay = document.getElementById('modalOverlay');
+  if(overlay){
+    overlay.addEventListener('click', (e)=>{
+      if(e.target.id === 'modalOverlay') UI.closeModal();
+    });
+  }
+
+  // Register SW for PWA offline — only in deployment contexts. Skip in sandbox
+  // preview environments (like Claude artifact previews) where sw.js isn't served,
+  // to avoid noisy 404 console warnings.
+  if('serviceWorker' in navigator && location.protocol !== 'file:'){
+    const host = location.hostname;
+    const isPreview = /claudeusercontent|anthropic|claude\.ai/.test(host);
+    if(!isPreview){
+      window.addEventListener('load', ()=>{
+        navigator.serviceWorker.register('sw.js').catch((e)=>console.warn('[Bloom] SW register failed', e));
+      });
+    }
+  }
+
+  // Global error safety net — surface errors as toast instead of silent freeze
+  window.addEventListener('error', (e)=>{
+    console.error('[Bloom] global error', e.error || e.message);
+  });
+})();
+
+</script>
+</body>
+</html>
